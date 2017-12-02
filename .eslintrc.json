@@ -1,0 +1,42 @@
+{
+  "env": {
+    "browser": true
+  },
+  "globals": {
+    "PIXI": false,
+    "Howl": false,
+    "WebFont": false,
+    "Bump": false,
+    "W": true,
+    "H": true,
+    "sfx": true,
+    "music": true,
+    "init": true,
+    "shipCollidesWithObstacle": true,
+    "getHitObstacle": true,
+    "solveGfxName": true,
+    "genCollisionPoints": true,
+    "item": true,
+    "above": true,
+    "below": true,
+    "both": true,
+    "final": true,
+    "single": true,
+    "saveLS": true,
+    "loadLS": true,
+    "deleteLS": true,
+    "resetLS": true,
+    "setSfx": true,
+    "setMusic": true,
+    "useSfx": true,
+    "useMusic": true,
+    "getScores": true,
+    "saveScore": true
+  },
+  "parserOptions": {
+    "ecmaVersion": 6,
+    "ecmaFeatures": {}
+  },
+  "extends": "eslint:recommended",
+  "rules": {}
+}
