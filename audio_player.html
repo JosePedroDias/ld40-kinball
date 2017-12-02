@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>loop sound</title>
+</head>
+
+<body>
+
+
+
+<script src="ext/howler.min.js"></script>
+<script>
+	var track_path = 'assets/bgm/track1/';
+	var sample_prefix = 'track1_all';
+	var segment_duration = 3626;
+
+	var track_path = 'assets/bgm/track2/';
+	var sample_prefix = 'track2_all';
+	var segment_duration = 5274;
+
+	var progress = [
+		'start',
+		'middle',
+		'end',
+	];
+	var variants = [
+		'normal',
+		'down',
+	];
+
+	var max_variants = variants.length;
+	var max_progress = progress.length;
+
+	var music_parts = {};
+	var sprite_map = {};
+	
+
+	var has_repeated = false;
+
+	var process_queue_sequentially = function(){
+		var parts = current_loop.split('_');
+		var cp = progress.indexOf(parts[0]);
+		var cv = variants.indexOf(parts[1]);
+
+		if (!has_repeated){
+			console.log('Repeating loop ' + current_loop);
+			has_repeated = true;
+			music_parts.play(current_loop);
+			return;
+		}
+
+		has_repeated = false;
+
+		//cv = Math.floor(Math.random() * max_variants);
+		//cp = Math.floor(Math.random() * max_progress);
+
+		cv++;
+
+		if (cv >= max_variants){
+			cv = 0;
+			cp++;
+			if (cp >= max_progress){
+				cp = 0;
+			}
+		}
+
+		current_loop = progress[cp] + '_' + variants[cv];
+
+		console.log('Changing loop to ' + current_loop);
+
+		music_parts.play(current_loop);
+	}
+
+	var sprite_offset = 0;
+	for (var p = 0; p < progress.length; p++){
+		for (var v = 0; v < variants.length; v++){
+			music_parts[progress[p] + '_' + variants[v]] = [sprite_offset, segment_duration];
+			sprite_offset += segment_duration;
+		}
+	}
+
+	music_parts = new Howl({
+		src: [
+			track_path + sample_prefix + '.webm',
+			track_path + sample_prefix + '.mp3',
+		],//todo: webm mp3
+		onend : process_queue_sequentially,
+		sprite: music_parts
+	});
+
+	var current_loop = 'start_normal';
+
+	console.log('Starting ' + current_loop);
+	music_parts.play(current_loop);
+
+    
+</script>
+</body>
+
+</html>
