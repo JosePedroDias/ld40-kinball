@@ -10,6 +10,12 @@ function inArr(item, arr) {
   return arr.indexOf(item) !== -1;
 }
 
+function removeFromArr(item, arr) {
+  const i = arr.indexOf(item);
+  arr.splice(i, 1);
+  return arr;
+}
+
 function clamp(n, min, max) {
   return n < min ? min : n > max ? max : n;
 }
@@ -54,10 +60,13 @@ const KCS = [KC_Z, KC_M, KC_R, KC_DOWN];
 
 const keyIsDown = {};
 
+const ballsOnScreen = [];
+let ballsToRemove = [];
+
 function hookKeys() {
   document.addEventListener("keydown", ev => {
     const kc = ev.keyCode;
-    console.log(kc);
+    //console.log(kc);
     if (ev.ctrlKey || ev.altKey || ev.shiftKey || !inArr(kc, KCS)) {
       return;
     }
@@ -183,13 +192,16 @@ function createFlipper({
   M.World.add(engine.world, [rect, ballMax, constraint]);
 }
 
-function createRect({ engine, pos, dims, angle }) {
+function createRect({ engine, pos, dims, angle, options }) {
   const rectangle = M.Bodies.rectangle(pos[0], pos[1], dims[0], dims[1], {
     isStatic: true,
-    angle: angle * DEG2RAD
+    angle: angle * DEG2RAD,
+    ...options
   });
 
   M.World.add(engine.world, [rectangle]);
+
+  return rectangle;
 }
 
 function createPlunger({ engine, pos, dims, angle }) {
@@ -298,7 +310,7 @@ function prepare() {
     options: {
       width: W,
       height: H,
-      wireframes: true,
+      wireframes: false,
       showAngleIndicator: true
     }
   });
@@ -314,6 +326,8 @@ function prepare() {
     r: 20
   });
   //}, 9000);
+
+  ballsOnScreen.push(initialSphere);
 
   createFlipper({
     engine,
@@ -377,6 +391,7 @@ function prepare() {
     angle: 0
   });
 
+  /*
   let lastSphereTime = new Date().valueOf();
   beforeUpdateCbs.push(() => {
     if (keyIsDown[KC_R]) {
@@ -384,10 +399,12 @@ function prepare() {
       if (sphereTime - lastSphereTime < 500) {
         return;
       }
-      createSphere({ engine, pos: [W * 0.88, H * 0.5], r: 20 });
+      const sphere = createSphere({ engine, pos: [W * 0.88, H * 0.5], r: 20 });
+      ballsOnScreen.push(sphere);
       lastSphereTime = sphereTime;
     }
   });
+  */
 
   createBumper({ engine, pos: [W * 0.7, H * 0.4], r: 48 });
   createBumper({ engine, pos: [W * 0.6, H * 0.55], r: 32 });
@@ -406,6 +423,20 @@ function prepare() {
   });
   M.World.add(engine.world, [arc]);
 
+  const lowerBound = createRect({
+    engine,
+    pos: [W * 0.7, H * 1.6],
+    dims: [W, 64],
+    angle: 0,
+    options: {
+      render: {
+        visible: false
+        //strokeStyle: "transparent",
+        //fillStyle: "transparent"
+      }
+    }
+  });
+
   createPlunger({
     engine,
     pos: [W * 0.877, H * 0.6],
@@ -417,10 +448,40 @@ function prepare() {
   hookKeys();
 
   const buffer = [];
-  M.Events.on(engine, "beforeTick", function() {
-    const s = 40 * initialSphere.speed;
+  M.Events.on(engine, "beforeTick", () => {
+    const s = clamp(40 * ballsOnScreen[0].speed, 200, 100000);
     const v = accum({ x: s, y: s }, buffer, 180);
-    M.Render.lookAt(render, [initialSphere], v, false);
+    M.Render.lookAt(render, ballsOnScreen, v, false);
+  });
+
+  function addBall() {
+    const sphere = createSphere({ engine, pos: [W * 0.88, H * 0.5], r: 20 });
+    ballsOnScreen.push(sphere);
+  }
+
+  function removeBall(ball) {
+    removeFromArr(ball, ballsOnScreen);
+    M.World.remove(engine.world, ball);
+  }
+
+  let needsNewBall = false;
+  beforeUpdateCbs.push(() => {
+    ballsToRemove.forEach(removeBall);
+    ballsToRemove = [];
+    if (needsNewBall) {
+      needsNewBall = false;
+      addBall();
+    }
+  });
+
+  M.Events.on(engine, "collisionEnd", ev => {
+    ev.pairs.forEach(({ bodyA, bodyB }) => {
+      if (inArr(lowerBound, [bodyA, bodyB])) {
+        const ball = bodyA === lowerBound ? bodyB : bodyA;
+        ballsToRemove.push(ball);
+        needsNewBall = true;
+      }
+    });
   });
 
   M.Engine.run(engine);
