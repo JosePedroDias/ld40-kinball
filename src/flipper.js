@@ -6,6 +6,8 @@ const H = 600;
 const DEG2RAD = Math.PI / 180;
 const RAD2DEG = 180 / Math.PI;
 
+let sound_enabled = loadLS("sound", true);
+
 function inArr(item, arr) {
   return arr.indexOf(item) !== -1;
 }
@@ -51,12 +53,13 @@ function linearize(n, a, b) {
 const KC_Z = 90;
 const KC_M = 77;
 const KC_R = 82;
+const KC_S = 83;
 const KC_SPACE = 32;
 const KC_LEFT = 37;
 const KC_RIGHT = 39;
 const KC_UP = 38;
 const KC_DOWN = 40;
-const KCS = [KC_Z, KC_M, KC_R, KC_DOWN];
+const KCS = [KC_Z, KC_M, KC_R, KC_S, KC_DOWN];
 
 const keyIsDown = {};
 
@@ -76,6 +79,16 @@ function hookKeys() {
     if (keyIsDown[kc]) {
       return;
     }
+
+    if (kc === KC_Z || kc === KC_M) {
+      sound_enabled && sfx.flipper.play();
+    } else if (kc === KC_S) {
+      sound_enabled = !sound_enabled;
+      saveLS("sound", sound_enabled);
+      setSfx(sound_enabled);
+      setMusic(sound_enabled);
+    }
+
     keyIsDown[kc] = true;
   });
 
@@ -86,10 +99,14 @@ function hookKeys() {
     }
     ev.preventDefault();
     ev.stopPropagation();
-    if (KCS.indexOf())
-      if (!keyIsDown[kc]) {
-        return;
-      }
+    if (!keyIsDown[kc]) {
+      return;
+    }
+
+    if (kc === KC_DOWN) {
+      sound_enabled && sfx.ball_out.play();
+    }
+
     keyIsDown[kc] = false;
   });
 }
@@ -311,8 +328,8 @@ function prepare() {
     options: {
       width: W,
       height: H,
-      wireframes: false,
-      showAngleIndicator: true
+      wireframes: false
+      //showAngleIndicator: true
     }
   });
 
@@ -478,6 +495,7 @@ function prepare() {
   M.Events.on(engine, "collisionEnd", ev => {
     ev.pairs.forEach(({ bodyA, bodyB }) => {
       ++score;
+      //sound_enabled && sfx.collision_1.play();
       if (inArr(lowerBound, [bodyA, bodyB])) {
         const ball = bodyA === lowerBound ? bodyB : bodyA;
         ballsToRemove.push(ball);
@@ -504,6 +522,9 @@ function prepare() {
 
   M.Engine.run(engine);
   M.Render.run(render);
+
+  loadMusic(0);
+  setMusic(sound_enabled);
 }
 
 prepare();
