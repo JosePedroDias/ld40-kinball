@@ -70,6 +70,24 @@ function polarMove({ pos, r, angle }) {
   return [pos[0] + Math.cos(a) * r, pos[1] + Math.sin(a) * r];
 }
 
+function createFlipperShape({ pos, ra, rb, length, options }) {
+  const pa = [pos[0] - length / 2, pos[1]];
+  const pb = [pos[0] + length / 2, pos[1]];
+
+  const circleA = M.Bodies.circle(pa[0], pa[1], ra);
+  const circleB = M.Bodies.circle(pb[0], pb[1], rb);
+  const poly = M.Bodies.fromVertices(pos[0], pos[1], [
+    { x: pa[0], y: pa[1] - ra },
+    { x: pa[0], y: pa[1] + ra },
+    { x: pb[0], y: pb[1] + rb },
+    { x: pb[0], y: pb[1] - rb }
+  ]);
+
+  const compound = M.Body.create({ parts: [circleA, circleB, poly] }, options);
+
+  return compound;
+}
+
 function createFlipper({
   engine,
   pos,
@@ -80,13 +98,22 @@ function createFlipper({
   angVel
 }) {
   const nailPos = { x: pos[0] + nailRelPos[0], y: pos[1] + nailRelPos[1] };
-  const rect = M.Bodies.rectangle(nailPos.x, nailPos.y, dims[0], dims[1], {
-    density: 0.0015
-  }); // 0.001
-
-  const limitR = 5;
 
   const invertAngles = nailRelPos[0] > 0;
+
+  //const rect = M.Bodies.rectangle(nailPos.x, nailPos.y, dims[0], dims[1], {
+  //  density: 0.0015
+  //}); // 0.001
+
+  const rect = createFlipperShape({
+    pos: [nailPos.x, nailPos.y],
+    ra: invertAngles ? 12 : 16,
+    rb: invertAngles ? 16 : 12,
+    length: dims[0] - Math.max(24, 16),
+    options: { density: 0.0015 }
+  });
+
+  const limitR = 5;
 
   const ballMaxPos = polarMove({
     pos: [nailPos.x, nailPos.y],
@@ -212,16 +239,23 @@ function prepare() {
 
   createRect({
     engine,
-    pos: [W / 2 - 330, H * 0.55],
-    dims: [200, 24],
+    pos: [W / 2 - 340, H * 0.41],
+    dims: [360, 24],
     angle: 90
   });
 
   createRect({
     engine,
-    pos: [W / 2 + 330, H * 0.55],
-    dims: [200, 24],
+    pos: [W / 2 + 340, H * 0.41],
+    dims: [360, 24],
     angle: 90
+  });
+
+  createRect({
+    engine,
+    pos: [W / 2, H * 0.092],
+    dims: [700, 24],
+    angle: 0
   });
 
   hookMouse({ engine, render });
