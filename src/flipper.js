@@ -14,6 +14,21 @@ function clamp(n, min, max) {
   return n < min ? min : n > max ? max : n;
 }
 
+function accum(newVec, vects, maxLen) {
+  vects.push(newVec);
+  const avgVec = { x: 0, y: 0 };
+  if (vects.length > maxLen) {
+    vects.shift();
+  }
+  vects.forEach(({ x, y }) => {
+    avgVec.x += x;
+    avgVec.y += y;
+  });
+  avgVec.x /= vects.length;
+  avgVec.y /= vects.length;
+  return avgVec;
+}
+
 function linearize(n, a, b) {
   const l = Math.abs(b - a);
 
@@ -230,6 +245,8 @@ function createSphere({ engine, pos, r }) {
   });
 
   M.World.add(engine.world, [sphere]);
+
+  return sphere;
 }
 
 function createBumper({ engine, pos, r }) {
@@ -243,9 +260,9 @@ function createBumper({ engine, pos, r }) {
     bodyA: sphere,
     pointA: { x: 0, y: 0 },
     pointB: { x: pos[0], y: pos[1] },
-    //stiffness: 0.2,
-    //angularStiffness: 0,
-    //damping: 0.5,
+    stiffness: 0.2,
+    angularStiffness: 0,
+    damping: 0.5,
     length: 0
   });
 
@@ -291,7 +308,11 @@ function prepare() {
   });
 
   //setTimeout(function() {
-  createSphere({ engine, pos: [W / 2 - 60, H / 2], r: 20 });
+  const initialSphere = createSphere({
+    engine,
+    pos: [W / 2 - 60, H / 2],
+    r: 20
+  });
   //}, 9000);
 
   createFlipper({
@@ -372,6 +393,8 @@ function prepare() {
   createBumper({ engine, pos: [W * 0.6, H * 0.55], r: 32 });
   createBumper({ engine, pos: [W * 0.55, H * 0.2], r: 48 });
 
+  createBumper({ engine, pos: [W * 0.5, H * 1.1], r: 12 });
+
   const arc = createArc({
     pos: [W * 0.805, H * 0.252],
     r: 90,
@@ -392,6 +415,13 @@ function prepare() {
 
   hookMouse({ engine, render });
   hookKeys();
+
+  const buffer = [];
+  M.Events.on(engine, "beforeTick", function() {
+    const s = 40 * initialSphere.speed;
+    const v = accum({ x: s, y: s }, buffer, 180);
+    M.Render.lookAt(render, [initialSphere], v, false);
+  });
 
   M.Engine.run(engine);
   M.Render.run(render);
