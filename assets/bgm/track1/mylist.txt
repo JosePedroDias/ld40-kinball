@@ -1,0 +1,6 @@
+file 'track1_start_normal.wav'
+file 'track1_start_down.wav'
+file 'track1_middle_normal.wav'
+file 'track1_middle_down.wav'
+file 'track1_end_normal.wav'
+file 'track1_end_down.wav'
