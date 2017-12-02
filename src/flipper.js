@@ -62,6 +62,7 @@ const keyIsDown = {};
 
 const ballsOnScreen = [];
 let ballsToRemove = [];
+let score = 0;
 
 function hookKeys() {
   document.addEventListener("keydown", ev => {
@@ -476,12 +477,29 @@ function prepare() {
 
   M.Events.on(engine, "collisionEnd", ev => {
     ev.pairs.forEach(({ bodyA, bodyB }) => {
+      ++score;
       if (inArr(lowerBound, [bodyA, bodyB])) {
         const ball = bodyA === lowerBound ? bodyB : bodyA;
         ballsToRemove.push(ball);
         needsNewBall = true;
       }
     });
+  });
+
+  M.Events.on(render, "afterRender", function() {
+    //M.Render.startViewTransform(render);
+
+    const ctx = render.context;
+    ctx.font = "45px DotMatrixBold";
+
+    ctx.fillStyle = "#444";
+    ctx.fillText("HHHHHHHHHH", 20 + 4.5, 50);
+    ctx.fillText("HHHHHHHHHH", 20, 50);
+
+    ctx.fillStyle = "#DD2";
+    ctx.fillText("SCORE " + score, 20, 50);
+
+    //M.Render.endViewTransform(render);
   });
 
   M.Engine.run(engine);
