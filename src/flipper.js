@@ -8,6 +8,8 @@ const RAD2DEG = 180 / Math.PI;
 
 let sound_enabled = loadLS("sound", true);
 let spawnPos = [W * 0.88, H * 0.5];
+// testing "edge" cases
+//let spawnPos = [665, 130];
 
 function inArr(item, arr) {
   return arr.indexOf(item) !== -1;
@@ -182,12 +184,7 @@ function createFlipper({
     ra: invertAngles ? 12 : 16,
     rb: invertAngles ? 16 : 12,
     length: dims[0] - Math.max(24, 16),
-    options: {
-      density: 1,
-      friction: 0,
-      restitution: 2,
-      mass: 100
-    }
+    options: { density: 0.0015 }
   });
 
   const limitR = 5;
@@ -302,10 +299,9 @@ function createPlunger({ engine, pos, dims, angle }) {
 
 function createSphere({ engine, pos, r }) {
   const sphere = M.Bodies.circle(pos[0], pos[1], r, {
-    density: 1, // 0.001
+    density: 0.0006,
     friction: 0,
-    restitution: 0.5,
-    mass:0.3
+    restitution: 0.5
   });
 
   M.World.add(engine.world, [sphere]);
