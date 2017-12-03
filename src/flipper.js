@@ -467,11 +467,11 @@ function prepare() {
   const lowerBound = createRect({
     engine,
     pos: [W * 0.7, H * 1.6],
-    dims: [W, 64],
+    dims: [W * 4, 64],
     angle: 0,
     options: {
       render: {
-        visible: false
+        //visible: false
       }
     }
   });
