@@ -8,7 +8,7 @@ const RAD2DEG = 180 / Math.PI;
 
 let currentLevel = 0;
 let score = 0;
-let spareBalls = 1;
+let spareBalls = 3;
 let extraBalls = 6;
 let blinkUntil = 0;
 let specialMessage = "";
@@ -145,6 +145,10 @@ function hookKeys() {
 
     if (kc === KC_DOWN) {
       soundEnabled && sfx.ball_out.play();
+    }
+
+    if (kc === KC_ENTER && ballsOnScreen.length === 0) {
+      restart();
     }
 
     keyIsDown[kc] = false;
@@ -411,11 +415,15 @@ function prepare() {
   let levelConfig, lowerBound;
 
   function restart() {
+    sfx.gameover.stop();
     score = 0;
     currentLevel = 0;
     spareBalls = 3;
     extraBalls = 6;
+    reset();
+    displaySpecialMessage("INSERTED COIN");
   }
+  window.restart = restart;
 
   function reset() {
     beforeUpdateCbs = [];
@@ -468,14 +476,18 @@ function prepare() {
       needsNewBall = false;
       --spareBalls;
       if (spareBalls > 0) {
+        // still have extra balls
         addBall();
       } else if (spareBalls === 0) {
+        // no more, SPAM the MOFO
         displaySpecialMessage("LOOKS LIKE YOU NEED BALLS...");
         for (let i = 0; i < extraBalls; ++i) {
           addBall();
         }
       } else if (ballsOnScreen.length === 0) {
-        //M.Engine.
+        // game over
+        setMusic(false);
+        soundEnabled && sfx.gameover.play();
         if (score > highScore) {
           highScore = score;
           saveLS("score", highScore);
