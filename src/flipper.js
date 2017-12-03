@@ -67,6 +67,7 @@ const KC_DOWN = 40;
 const KCS = [KC_Z, KC_M, KC_R, KC_S, KC_DOWN];
 
 const keyIsDown = {};
+const keyIsUp = {};
 
 const ballsOnScreen = [];
 let ballsToRemove = [];
@@ -114,6 +115,7 @@ function hookKeys() {
     }
 
     keyIsDown[kc] = false;
+    keyIsUp[kc] = true;
   });
 }
 
@@ -180,7 +182,12 @@ function createFlipper({
     ra: invertAngles ? 12 : 16,
     rb: invertAngles ? 16 : 12,
     length: dims[0] - Math.max(24, 16),
-    options: { density: 0.0015 }
+    options: {
+      density: 1,
+      friction: 0,
+      restitution: 2,
+      mass: 100
+    }
   });
 
   const limitR = 5;
@@ -201,8 +208,16 @@ function createFlipper({
     length: 0
   });
 
+  let wentDownF = 0;
+
   beforeUpdateCbs.push(() => {
     const rotateFlipper = keyIsDown[key];
+
+    const placeBackFlipper = keyIsUp[key];
+    if (placeBackFlipper) {
+      wentDownF = new Date().valueOf() + 100;
+      keyIsUp[key] = false;
+    }
 
     if (rotateFlipper) {
       //console.log((rect.angle * RAD2DEG).toFixed(1));
@@ -210,7 +225,19 @@ function createFlipper({
       const n = linearize(rect.angle * RAD2DEG, 30 * i, -7 * i);
       //console.log((n * 100).toFixed(1));
       M.Body.setAngularVelocity(rect, angVel * n);
+    } else {
+      if (wentDownF > 0){
+        var ctime = new Date().valueOf();
+        if (ctime < wentDownF){
+          M.Body.setAngularVelocity(rect, -angVel * 0.3 );
+        } else {
+          wentDownF = 0;
+        }
+      }
     }
+
+    
+
   });
 
   M.World.add(engine.world, [rect, ballMax, constraint]);
@@ -275,9 +302,10 @@ function createPlunger({ engine, pos, dims, angle }) {
 
 function createSphere({ engine, pos, r }) {
   const sphere = M.Bodies.circle(pos[0], pos[1], r, {
-    density: 0.002, // 0.001
+    density: 1, // 0.001
     friction: 0,
-    restitution: 0.5
+    restitution: 0.5,
+    mass:0.3
   });
 
   M.World.add(engine.world, [sphere]);
@@ -345,10 +373,12 @@ function prepare() {
     options: {
       width: W,
       height: H,
-      wireframes: false
+      wireframes: false,
       //showAngleIndicator: true
     }
   });
+
+  engine.world.gravity.y = 0.4;
 
   M.Events.on(engine, "beforeUpdate", function() {
     beforeUpdateCbs.forEach(cb => cb());
