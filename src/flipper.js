@@ -6,7 +6,8 @@ const H = 600;
 const DEG2RAD = Math.PI / 180;
 const RAD2DEG = 180 / Math.PI;
 
-let sound_enabled = loadLS("sound", true);
+let highScore = loadLS("score", 0);
+let soundEnabled = loadLS("sound", true);
 let spawnPos = [W * 0.88, H * 0.5];
 
 function inArr(item, arr) {
@@ -73,6 +74,7 @@ const ballsOnScreen = [];
 let ballsToRemove = [];
 let score = 0;
 let spareBalls = 3;
+let extraBalls = 6;
 
 function hookKeys() {
   document.addEventListener("keydown", ev => {
@@ -88,12 +90,12 @@ function hookKeys() {
     }
 
     if (kc === KC_Z || kc === KC_M) {
-      sound_enabled && sfx.flipper.play();
+      soundEnabled && sfx.flipper.play();
     } else if (kc === KC_S) {
-      sound_enabled = !sound_enabled;
-      saveLS("sound", sound_enabled);
-      setSfx(sound_enabled);
-      setMusic(sound_enabled);
+      soundEnabled = !soundEnabled;
+      saveLS("sound", soundEnabled);
+      setSfx(soundEnabled);
+      setMusic(soundEnabled);
     }
 
     keyIsDown[kc] = true;
@@ -111,7 +113,7 @@ function hookKeys() {
     }
 
     if (kc === KC_DOWN) {
-      sound_enabled && sfx.ball_out.play();
+      soundEnabled && sfx.ball_out.play();
     }
 
     keyIsDown[kc] = false;
@@ -226,18 +228,15 @@ function createFlipper({
       //console.log((n * 100).toFixed(1));
       M.Body.setAngularVelocity(rect, angVel * n);
     } else {
-      if (wentDownF > 0){
+      if (wentDownF > 0) {
         var ctime = new Date().valueOf();
-        if (ctime < wentDownF){
-          M.Body.setAngularVelocity(rect, -angVel * 0.3 );
+        if (ctime < wentDownF) {
+          M.Body.setAngularVelocity(rect, -angVel * 0.3);
         } else {
           wentDownF = 0;
         }
       }
     }
-
-    
-
   });
 
   M.World.add(engine.world, [rect, ballMax, constraint]);
@@ -305,7 +304,7 @@ function createSphere({ engine, pos, r }) {
     density: 1, // 0.001
     friction: 0,
     restitution: 0.5,
-    mass:0.3
+    mass: 0.3
   });
 
   M.World.add(engine.world, [sphere]);
@@ -335,7 +334,7 @@ function createBumper({ engine, pos, r }) {
 
 function createTriangleBumper({ engine, pos, v0, v1, v2, r }) {
   const originalVerts = [v0, v1, v2].map(p);
-  const verts = M.Vertices.chamfer(originalVerts, r);
+  const verts = r ? M.Vertices.chamfer(originalVerts, r) : originalVerts;
   const ctr = p(pos) || M.Vertices.centre(originalVerts);
   const tri = M.Bodies.fromVertices(ctr.x, ctr.y, verts, {
     isStatic: true,
@@ -373,7 +372,7 @@ function prepare() {
     options: {
       width: W,
       height: H,
-      wireframes: false,
+      wireframes: false
       //showAngleIndicator: true
     }
   });
@@ -468,7 +467,7 @@ function prepare() {
   const lowerBound = createRect({
     engine,
     pos: [W * 0.7, H * 1.6],
-    dims: [W, 64],
+    dims: [W * 4, 64],
     angle: 0,
     options: {
       render: {
@@ -487,10 +486,10 @@ function prepare() {
   createTriangleBumper({
     engine,
     pos: [300, 250],
-    v0: [-50, -50],
-    v1: [50, -50],
-    v2: [0, 50],
-    r: 20
+    v0: [-40, 30],
+    v1: [40, 30],
+    v2: [0, -30]
+    //r: 10
   });
 
   hookMouse({ engine, render });
@@ -498,6 +497,9 @@ function prepare() {
 
   const buffer = [];
   M.Events.on(engine, "beforeTick", () => {
+    if (ballsOnScreen.length === 0) {
+      return;
+    }
     const s = clamp(40 * ballsOnScreen[0].speed, 200, 100000);
     const v = accum({ x: s, y: s }, buffer, 180);
     M.Render.lookAt(render, ballsOnScreen, v, false);
@@ -520,12 +522,18 @@ function prepare() {
     if (needsNewBall) {
       needsNewBall = false;
       --spareBalls;
-      if (spareBalls === 0) {
-        for (let i = 0; i < 10; ++i) {
+      if (spareBalls > 0) {
+        addBall();
+      } else if (spareBalls === 0) {
+        for (let i = 0; i < extraBalls; ++i) {
           addBall();
         }
-      } else {
-        addBall();
+      } else if (ballsOnScreen.length === 0) {
+        //M.Engine.
+        if (score > highScore) {
+          highScore = score;
+          saveLS("score", highScore);
+        }
       }
     }
   });
@@ -533,7 +541,7 @@ function prepare() {
   M.Events.on(engine, "collisionEnd", ev => {
     ev.pairs.forEach(({ bodyA, bodyB }) => {
       ++score;
-      //sound_enabled && sfx.collision_1.play();
+      //soundEnabled && sfx.collision_1.play();
       if (inArr(lowerBound, [bodyA, bodyB])) {
         const ball = bodyA === lowerBound ? bodyB : bodyA;
         ballsToRemove.push(ball);
@@ -548,16 +556,24 @@ function prepare() {
     const ctx = render.context;
     ctx.font = "45px DotMatrixBold";
 
-    ctx.fillStyle = "#444";
-    ctx.fillText("HHHHHHHHHHHHHHHHHHHHH", 20 + 4.5, 50);
-    ctx.fillText("HHHHHHHHHHHHHHHHHHHHH", 20, 50);
+    ctx.fillStyle = "#333";
+    ctx.fillText("HHHHHHHHHHHHHHHHHHHHHHHHHHHH", 20 + 4.5, 50);
+    ctx.fillText("HHHHHHHHHHHHHHHHHHHHHHHHHHHH", 20, 50);
 
     ctx.fillStyle = "#DD2";
     let msg;
-    if (spareBalls === 0) {
-      msg = "LOOKS LIKE YOU NEED BALLS";
+    if (ballsOnScreen.length === extraBalls) {
+      msg = "LOOKS LIKE YOU NEED BALLS...";
+    } else if (ballsOnScreen.length > 0) {
+      msg =
+        "HIGH:" +
+        highScore +
+        " SCORE:" +
+        score +
+        " BALLS:" +
+        (spareBalls >= 0 ? spareBalls : "?!");
     } else {
-      msg = "SCORE:" + score + " BALLS:" + spareBalls;
+      msg = "GAME OVER";
     }
     ctx.fillText(msg, 20, 50);
 
@@ -568,7 +584,7 @@ function prepare() {
   M.Render.run(render);
 
   loadMusic(0);
-  setMusic(sound_enabled);
+  setMusic(soundEnabled);
 }
 
 prepare();
