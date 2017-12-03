@@ -2,18 +2,25 @@
 
 Entry by @jose_pedro_dias and @asilva4000
 
-create physics shapes for:
+## TODO
 
-* flipper
-* triangular bumper
+### create elements for:
 
-create elements for:
+* labels logic for bumpers/points/goal/song change
 
-* flipper
-* bumper
-* drop target
-* launcher
-* plunger?
+### content:
+
+* create level(s)
+
+### compatibility:
+
+* combine js files and pass through babel
+
+### publishing:
+
+* create screenshot
+* create video
+* write instructions and supported platforms
 
 ## External Credits
 

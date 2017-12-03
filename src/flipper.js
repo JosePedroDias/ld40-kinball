@@ -7,6 +7,7 @@ const DEG2RAD = Math.PI / 180;
 const RAD2DEG = 180 / Math.PI;
 
 let sound_enabled = loadLS("sound", true);
+let spawnPos = [W * 0.88, H * 0.5];
 
 function inArr(item, arr) {
   return arr.indexOf(item) !== -1;
@@ -48,6 +49,10 @@ function linearize(n, a, b) {
   }
 
   return clamp(r, 0, 1);
+}
+
+function p(arr) {
+  return { x: arr[0], y: arr[1] };
 }
 
 const KC_Z = 90;
@@ -299,7 +304,18 @@ function createBumper({ engine, pos, r }) {
   M.World.add(engine.world, [sphere, constraint]);
 }
 
-function createTriangleBumper({ engine, pos0, pos1, pos2, r }) {}
+function createTriangleBumper({ engine, pos, v0, v1, v2, r }) {
+  const originalVerts = [v0, v1, v2].map(p);
+  const verts = M.Vertices.chamfer(originalVerts, r);
+  const ctr = p(pos) || M.Vertices.centre(originalVerts);
+  const tri = M.Bodies.fromVertices(ctr.x, ctr.y, verts, {
+    isStatic: true,
+    friction: 1,
+    restitution: 2
+  });
+  M.World.add(engine.world, [tri]);
+  return tri;
+}
 
 function hookMouse({ engine, render }) {
   const mouse = M.Mouse.create(render.canvas);
@@ -337,15 +353,7 @@ function prepare() {
     beforeUpdateCbs.forEach(cb => cb());
   });
 
-  //setTimeout(function() {
-  const initialSphere = createSphere({
-    engine,
-    pos: [W / 2 - 60, H / 2],
-    r: 20
-  });
-  //}, 9000);
-
-  ballsOnScreen.push(initialSphere);
+  addBall();
 
   createFlipper({
     engine,
@@ -409,24 +417,9 @@ function prepare() {
     angle: 0
   });
 
-  /*
-  let lastSphereTime = new Date().valueOf();
-  beforeUpdateCbs.push(() => {
-    if (keyIsDown[KC_R]) {
-      const sphereTime = new Date().valueOf();
-      if (sphereTime - lastSphereTime < 500) {
-        return;
-      }
-      const sphere = createSphere({ engine, pos: [W * 0.88, H * 0.5], r: 20 });
-      ballsOnScreen.push(sphere);
-      lastSphereTime = sphereTime;
-    }
-  });
-  */
-
   createBumper({ engine, pos: [W * 0.7, H * 0.4], r: 48 });
   createBumper({ engine, pos: [W * 0.6, H * 0.55], r: 32 });
-  createBumper({ engine, pos: [W * 0.55, H * 0.2], r: 48 });
+  createBumper({ engine, pos: [W * 0.25, H * 0.2], r: 48 });
 
   createBumper({ engine, pos: [W * 0.5, H * 1.1], r: 12 });
 
@@ -449,8 +442,6 @@ function prepare() {
     options: {
       render: {
         visible: false
-        //strokeStyle: "transparent",
-        //fillStyle: "transparent"
       }
     }
   });
@@ -460,6 +451,15 @@ function prepare() {
     pos: [W * 0.877, H * 0.6],
     dims: [40, 32],
     angle: 0
+  });
+
+  createTriangleBumper({
+    engine,
+    pos: [300, 250],
+    v0: [-50, -50],
+    v1: [50, -50],
+    v2: [0, 50],
+    r: 20
   });
 
   hookMouse({ engine, render });
@@ -473,7 +473,7 @@ function prepare() {
   });
 
   function addBall() {
-    const sphere = createSphere({ engine, pos: [W * 0.88, H * 0.5], r: 20 });
+    const sphere = createSphere({ engine, pos: spawnPos, r: 20 });
     ballsOnScreen.push(sphere);
   }
 
