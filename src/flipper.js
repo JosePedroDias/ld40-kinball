@@ -11,12 +11,14 @@ let score = 0;
 let spareBalls = 3;
 let extraBalls = 6;
 let blinkUntil = 0;
+let won = false;
 let specialMessage = "";
 
 let highScore = loadLS("score", 0);
 let soundEnabled = loadLS("sound", true);
 let spawnPos;
 let isBlinking = false;
+let needsNewBall = false;
 
 let displayTimer;
 function displaySpecialMessage(msg, onDone) {
@@ -153,7 +155,11 @@ function hookKeys() {
     }
 
     if (kc === KC_ENTER && ballsOnScreen.length === 0) {
-      restart();
+      if (won) {
+        startNextLevel();
+      } else {
+        restart();
+      }
     }
 
     keyIsDown[kc] = false;
@@ -420,7 +426,7 @@ function prepare() {
     beforeUpdateCbs.forEach(cb => cb());
   });
 
-  let levelConfig, lowerBound;
+  let levelConfig;
 
   function restart() {
     sfx.gameover.stop();
@@ -428,15 +434,46 @@ function prepare() {
     currentLevel = 0;
     spareBalls = 3;
     extraBalls = 6;
-    reset();
+    needsNewBall = false;
+    startNextLevel();
     displaySpecialMessage("INSERTED COIN");
   }
   window.restart = restart;
 
-  function reset() {
+  function startNextLevel() {
+    sfx.win.stop();
+    sfx.gameover.stop();
+    won = false;
     beforeUpdateCbs = [];
     M.World.clear(engine.world);
     M.Engine.clear(engine);
+
+    beforeUpdateCbs.push(() => {
+      ballsToRemove.forEach(removeBall);
+      ballsToRemove = [];
+      if (needsNewBall) {
+        needsNewBall = false;
+        --spareBalls;
+        if (spareBalls > 0) {
+          // still have extra balls
+          addBall();
+        } else if (spareBalls === 0) {
+          // no more, SPAM the MOFO
+          displaySpecialMessage("LOOKS LIKE YOU NEED BALLS...");
+          for (let i = 0; i < extraBalls; ++i) {
+            addBall();
+          }
+        } else if (ballsOnScreen.length === 0) {
+          // game over
+          setMusic(false);
+          soundEnabled && sfx.gameover.play();
+          if (score > highScore) {
+            highScore = score;
+            saveLS("score", highScore);
+          }
+        }
+      }
+    });
 
     levelConfig = levelBuilders[currentLevel](engine, W, H);
     lowerBound = levelConfig.lowerBound;
@@ -448,10 +485,13 @@ function prepare() {
     setMusic(soundEnabled);
 
     ++currentLevel;
+    if (currentLevel >= levelBuilders.length) {
+      currentLevel = 0;
+    }
   }
-  window.reset = reset;
+  window.startNextLevel = startNextLevel;
 
-  reset();
+  startNextLevel();
 
   // hookMouse({ engine, render });
   hookKeys();
@@ -476,51 +516,24 @@ function prepare() {
     M.World.remove(engine.world, ball);
   }
 
-  let needsNewBall = false;
-  beforeUpdateCbs.push(() => {
-    ballsToRemove.forEach(removeBall);
-    ballsToRemove = [];
-    if (needsNewBall) {
-      needsNewBall = false;
-      --spareBalls;
-      if (spareBalls > 0) {
-        // still have extra balls
-        addBall();
-      } else if (spareBalls === 0) {
-        // no more, SPAM the MOFO
-        displaySpecialMessage("LOOKS LIKE YOU NEED BALLS...");
-        for (let i = 0; i < extraBalls; ++i) {
-          addBall();
-        }
-      } else if (ballsOnScreen.length === 0) {
-        // game over
-        setMusic(false);
-        soundEnabled && sfx.gameover.play();
-        if (score > highScore) {
-          highScore = score;
-          saveLS("score", highScore);
-        }
-      }
-    }
-  });
-
   function onCustom(custom, body, otherBody) {
     console.log("custom: %s", body.custom);
     if (custom === "goal") {
+      won = true;
       displaySpecialMessage("LEVEL UP!", () => {
         displaySpecialMessage("+1000 POINTS");
         score += 1000;
       });
+      ballsOnScreen.forEach(b => ballsToRemove.push(b));
 
       setMusic(false);
-      sfx.win.play();
-      reset();
+      soundEnabled && sfx.win.play();
     } else if (custom === "boundary") {
       ballsToRemove.push(otherBody);
       needsNewBall = true;
     } else if (custom.indexOf("sfx|") === 0) {
       const sample = custom.split("|")[1];
-      sfx[sample].play();
+      soundEnabled && sfx[sample].play();
     }
   }
 
@@ -538,15 +551,43 @@ function prepare() {
     });
   });
 
+  /*const bgImg = new Image();
+  bgImg.src = "ball.png";
+  let bgPattern,
+    bgReady = false;
+  bgImg.onload = function() {
+    bgReady = true;
+  };
+
+  M.Events.on(render, "beforeRender", function() {
+    const ctx = render.context;
+
+    ctx.fillStyle = "#000";
+    ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+
+    M.Render.startViewTransform(render);
+
+    if (bgReady) {
+      if (!bgPattern) {
+        bgPattern = ctx.createPattern(bgImg, "repeat");
+      }
+
+      ctx.fillStyle = bgPattern;
+      ctx.fillRect(-2500, -2500, 5000, 5000);
+    }
+
+    M.Render.endViewTransform(render);
+  });*/
+
   M.Events.on(render, "afterRender", function() {
     //M.Render.startViewTransform(render);
 
     const ctx = render.context;
-    ctx.font = "45px DotMatrixBold";
+    ctx.font = "40px DotMatrixBold";
 
     ctx.fillStyle = isBlinking ? YELLOW : DARK_GRAY;
-    ctx.fillText("HHHHHHHHHHHHHHHHHHHHHHHHHHHH", 20 + 4.5, 50);
-    ctx.fillText("HHHHHHHHHHHHHHHHHHHHHHHHHHHH", 20, 50);
+    ctx.fillText("HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH", 20 + 4.5, 50);
+    ctx.fillText("HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH", 20, 50);
 
     ctx.fillStyle = isBlinking ? DARK_GRAY : YELLOW;
     let msg;
@@ -559,9 +600,11 @@ function prepare() {
         " SCORE:" +
         score +
         " BALLS:" +
-        (spareBalls >= 0 ? spareBalls : "?!");
+        (spareBalls >= 0 ? spareBalls : "?!") +
+        " L:" +
+        currentLevel;
     } else {
-      msg = "GAME OVER";
+      msg = won ? "PRESS ENTER TO CONTINUE" : "GAME OVER";
     }
     ctx.fillText(msg, 20, 50);
 

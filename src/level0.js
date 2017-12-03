@@ -125,7 +125,9 @@ levelBuilders.push(function buildLevel(engine, W, H) {
     v1: [40, 30],
     v2: [0, -30],
     //r: 10
-    options: { custom: "goal" }
+    options: {
+      custom: "goal"
+    }
   });
 
   return {
