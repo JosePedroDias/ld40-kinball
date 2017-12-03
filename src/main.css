@@ -10,8 +10,28 @@ body {
   padding: 0;
   font-family: DotMatrixBold;
   font-size: 20px;
+  height: 100%;
+}
+
+canvas {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  margin-left: -400px;
+  margin-top: -300px;
 }
 
 body {
   background-color: #000;
+}
+
+#intro {
+  font-family: monospace;
+  font-size: 13px;
+  color: #ddd;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  text-align: center;
 }

@@ -71,6 +71,7 @@ const keyIsDown = {};
 const ballsOnScreen = [];
 let ballsToRemove = [];
 let score = 0;
+let spareBalls = 3;
 
 function hookKeys() {
   document.addEventListener("keydown", ev => {
@@ -488,7 +489,14 @@ function prepare() {
     ballsToRemove = [];
     if (needsNewBall) {
       needsNewBall = false;
-      addBall();
+      --spareBalls;
+      if (spareBalls === 0) {
+        for (let i = 0; i < 10; ++i) {
+          addBall();
+        }
+      } else {
+        addBall();
+      }
     }
   });
 
@@ -511,11 +519,17 @@ function prepare() {
     ctx.font = "45px DotMatrixBold";
 
     ctx.fillStyle = "#444";
-    ctx.fillText("HHHHHHHHHH", 20 + 4.5, 50);
-    ctx.fillText("HHHHHHHHHH", 20, 50);
+    ctx.fillText("HHHHHHHHHHHHHHHHHHHHH", 20 + 4.5, 50);
+    ctx.fillText("HHHHHHHHHHHHHHHHHHHHH", 20, 50);
 
     ctx.fillStyle = "#DD2";
-    ctx.fillText("SCORE " + score, 20, 50);
+    let msg;
+    if (spareBalls === 0) {
+      msg = "LOOKS LIKE YOU NEED BALLS";
+    } else {
+      msg = "SCORE:" + score + " BALLS:" + spareBalls;
+    }
+    ctx.fillText(msg, 20, 50);
 
     //M.Render.endViewTransform(render);
   });
