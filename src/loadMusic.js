@@ -7,11 +7,18 @@
 
   const levelSongs = [{ d: 3626, n: "track1" }, { d: 5274, n: "track2" }];
 
-  let music_parts = {};
+  let music_parts = undefined;
 
   let current_loop = "start_normal";
 
   function loadMusic(levelNumber) {
+    if (music_parts !== undefined){
+      // we need to unload first;
+      music_parts.unload();
+    }
+
+    music_parts = {};
+
     const song = levelSongs[levelNumber];
     const track_path = prefix + song.n + "/";
     const sample_prefix = song.n + "_all";
