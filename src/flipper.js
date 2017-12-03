@@ -181,7 +181,12 @@ function createFlipper({
     ra: invertAngles ? 12 : 16,
     rb: invertAngles ? 16 : 12,
     length: dims[0] - Math.max(24, 16),
-    options: { density: 0.0015 }
+    options: {
+      density: 1,
+      friction: 0,
+      restitution: 2,
+      mass: 100
+    }
   });
 
   const limitR = 5;
@@ -296,9 +301,10 @@ function createPlunger({ engine, pos, dims, angle }) {
 
 function createSphere({ engine, pos, r }) {
   const sphere = M.Bodies.circle(pos[0], pos[1], r, {
-    density: 0.002, // 0.001
+    density: 1, // 0.001
     friction: 0,
-    restitution: 0.5
+    restitution: 0.5,
+    mass:0.3
   });
 
   M.World.add(engine.world, [sphere]);
@@ -366,10 +372,12 @@ function prepare() {
     options: {
       width: W,
       height: H,
-      wireframes: false
+      wireframes: false,
       //showAngleIndicator: true
     }
   });
+
+  engine.world.gravity.y = 0.4;
 
   M.Events.on(engine, "beforeUpdate", function() {
     beforeUpdateCbs.forEach(cb => cb());
