@@ -6,9 +6,11 @@ const H = 600;
 const DEG2RAD = Math.PI / 180;
 const RAD2DEG = 180 / Math.PI;
 
+let currentLevel = 0;
+
 let highScore = loadLS("score", 0);
 let soundEnabled = loadLS("sound", true);
-let spawnPos = [W * 0.88, H * 0.5];
+let spawnPos;
 // testing "edge" cases
 //let spawnPos = [665, 130];
 
@@ -123,7 +125,7 @@ function hookKeys() {
   });
 }
 
-const beforeUpdateCbs = [];
+let beforeUpdateCbs = [];
 
 function polarMove({ pos, r, angle }) {
   const a = DEG2RAD * angle;
@@ -379,10 +381,23 @@ function prepare() {
     beforeUpdateCbs.forEach(cb => cb());
   });
 
-  addBall();
+  let o, lowerBound;
 
-  const o = buildLevel(engine, W, H);
-  const lowerBound = o.lowerBound;
+  function reset() {
+    beforeUpdateCbs = [];
+    M.World.clear(engine.world);
+    M.Engine.clear(engine);
+
+    o = levelBuilders[currentLevel](engine, W, H);
+    lowerBound = o.lowerBound;
+    spawnPos = o.spawnPos;
+    ++currentLevel;
+
+    addBall();
+  }
+  window.reset = reset;
+
+  reset();
 
   // hookMouse({ engine, render });
   hookKeys();
