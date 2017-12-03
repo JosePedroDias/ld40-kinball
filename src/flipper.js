@@ -47,6 +47,10 @@ function getTime() {
   return new Date().valueOf();
 }
 
+function getRandomInt(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
 function inArr(item, arr) {
   return arr.indexOf(item) !== -1;
 }
@@ -100,19 +104,25 @@ const KC_Z = 90;
 const KC_M = 77;
 const KC_R = 82;
 const KC_S = 83;
+const KC_T = 84;
 const KC_SPACE = 32;
 const KC_LEFT = 37;
 const KC_RIGHT = 39;
 const KC_UP = 38;
 const KC_DOWN = 40;
 const KC_ENTER = 13;
-const KCS = [KC_Z, KC_M, KC_R, KC_S, KC_DOWN, KC_SPACE, KC_ENTER];
+const KCS = [KC_Z, KC_M, KC_R, KC_S, KC_DOWN, KC_ENTER, KC_T];
 
 const keyIsDown = {};
 const keyIsUp = {};
 
 const ballsOnScreen = [];
 let ballsToRemove = [];
+
+let currentTilt = 0;
+let nextTilt = 0;
+let stopTilt = 0;
+
 
 function hookKeys() {
   document.addEventListener("keydown", ev => {
@@ -496,13 +506,64 @@ function prepare() {
   // hookMouse({ engine, render });
   hookKeys();
 
-  const buffer = [];
+  let buffer = [];
   M.Events.on(engine, "beforeTick", () => {
     if (ballsOnScreen.length === 0) {
       return;
     }
+
+
+    /* process tilt key */
+    let tilt_offset_x = 0;
+    let tilt_offset_y = 0;
+    let apply_tilt = false;
+
+    if (keyIsDown[KC_T]) {
+      const cdate = new Date().valueOf();
+      if (currentTilt === 0){
+        ///console.log('Set new tilt');
+        currentTilt = cdate;
+        nextTilt = cdate + 10000; //10 seconds cool down
+        stopTilt = cdate + 1000; //1 second duration
+        apply_tilt = true;
+        const new_offset_x = getRandomInt(-10, 10) * 0.004;
+        const new_offset_y = getRandomInt(-10, 10) * 0.004;
+        ballsOnScreen.forEach(b => {
+          M.Body.applyForce(b, b.position, {
+            x: new_offset_x,
+            y: new_offset_y,
+          });
+        });
+      } else if (cdate < stopTilt){
+        //console.log('Grace time');
+        apply_tilt = true;
+      }
+
+      //apply_tilt = false; // disable shake cam
+      if (apply_tilt){
+        //console.log('Applying tilt');
+        tilt_offset_x = getRandomInt(-10, 10);
+        tilt_offset_y = getRandomInt(-10, 10);
+        buffer = [];
+      }
+
+    } else if (keyIsUp[KC_T]){
+      keyIsUp[KC_T] = false;
+    }
+
+    /* reset tilt state */
+    if (currentTilt !== 0 && new Date().valueOf() > nextTilt){
+      //console.log('RESETING TILT');
+      currentTilt = 0;
+      nextTilt = 0;
+      stopTilt = 0;
+    }
+
+
     const s = clamp(40 * ballsOnScreen[0].speed, 200, 100000);
-    const v = accum({ x: s, y: s }, buffer, 180);
+    const cam_offset_x = s + tilt_offset_x;
+    const cam_offset_y = s + tilt_offset_y;
+    const v = accum({ x: cam_offset_x , y: cam_offset_y }, buffer, 180);
     M.Render.lookAt(render, ballsOnScreen, v, false);
   });
 
