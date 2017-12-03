@@ -61,11 +61,31 @@ levelBuilders.push(function buildLevel(engine, W, H) {
     angle: 0
   });
 
-  createBumper({ engine, pos: [W * 0.7, H * 0.4], r: 48 });
-  createBumper({ engine, pos: [W * 0.6, H * 0.55], r: 32 });
-  createBumper({ engine, pos: [W * 0.25, H * 0.2], r: 48 });
+  createBumper({
+    engine,
+    pos: [W * 0.7, H * 0.4],
+    r: 48,
+    options: { custom: "sfx|collision_3" }
+  });
+  createBumper({
+    engine,
+    pos: [W * 0.6, H * 0.55],
+    r: 32,
+    options: { custom: "sfx|collision_1" }
+  });
+  createBumper({
+    engine,
+    pos: [W * 0.25, H * 0.2],
+    r: 48,
+    options: { custom: "sfx|collision_3" }
+  });
 
-  createBumper({ engine, pos: [W * 0.5, H * 1.1], r: 12 });
+  createBumper({
+    engine,
+    pos: [W * 0.5, H * 1.1],
+    r: 12,
+    options: { custom: "sfx|collision_1" }
+  });
 
   const arc = createArc({
     pos: [W * 0.805, H * 0.252],
@@ -84,8 +104,9 @@ levelBuilders.push(function buildLevel(engine, W, H) {
     dims: [W * 4, 64],
     angle: 0,
     options: {
+      custom: "boundary",
       render: {
-        //visible: false
+        visible: false
       }
     }
   });
@@ -102,12 +123,12 @@ levelBuilders.push(function buildLevel(engine, W, H) {
     pos: [300, 250],
     v0: [-40, 30],
     v1: [40, 30],
-    v2: [0, -30]
+    v2: [0, -30],
     //r: 10
+    options: { custom: "goal" }
   });
 
   return {
-    lowerBound,
     spawnPos: [W * 0.88, H * 0.5],
     musicIndex: 1
   };

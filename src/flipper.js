@@ -19,7 +19,8 @@ let spawnPos;
 let isBlinking = false;
 
 let displayTimer;
-function displaySpecialMessage(msg, duration = 1200) {
+function displaySpecialMessage(msg, onDone) {
+  const duration = 1200;
   specialMessage = msg;
   blinkUntil = getTime() + duration;
 
@@ -35,6 +36,7 @@ function displaySpecialMessage(msg, duration = 1200) {
       displayTimer = undefined;
       specialMessage = "";
       isBlinking = false;
+      onDone && onDone();
     }
   }, 100);
 }
@@ -88,6 +90,9 @@ function linearize(n, a, b) {
 function p(arr) {
   return { x: arr[0], y: arr[1] };
 }
+
+const YELLOW = "#DD2";
+const DARK_GRAY = "#333";
 
 const KC_Z = 90;
 const KC_M = 77;
@@ -284,10 +289,11 @@ function createRect({ engine, pos, dims, angle, options }) {
   return rectangle;
 }
 
-function createPlunger({ engine, pos, dims, angle }) {
+function createPlunger({ engine, pos, dims, angle, options }) {
   const rectangle = M.Bodies.rectangle(pos[0], pos[1], dims[0], dims[1], {
     angle: angle * DEG2RAD,
-    density: 0.3
+    density: 0.3,
+    ...options
   });
 
   const dx = 10;
@@ -341,11 +347,12 @@ function createSphere({ engine, pos, r }) {
   return sphere;
 }
 
-function createBumper({ engine, pos, r }) {
+function createBumper({ engine, pos, r, options }) {
   const sphere = M.Bodies.circle(pos[0], pos[1], r, {
     //density: 0.0001, // 0.001
     friction: 1,
-    restitution: 2
+    restitution: 2,
+    ...options
   });
 
   const constraint = M.Constraint.create({
@@ -361,14 +368,15 @@ function createBumper({ engine, pos, r }) {
   M.World.add(engine.world, [sphere, constraint]);
 }
 
-function createTriangleBumper({ engine, pos, v0, v1, v2, r }) {
+function createTriangleBumper({ engine, pos, v0, v1, v2, r, options }) {
   const originalVerts = [v0, v1, v2].map(p);
   const verts = r ? M.Vertices.chamfer(originalVerts, r) : originalVerts;
   const ctr = p(pos) || M.Vertices.centre(originalVerts);
   const tri = M.Bodies.fromVertices(ctr.x, ctr.y, verts, {
     isStatic: true,
     friction: 1,
-    restitution: 2
+    restitution: 2,
+    ...options
   });
   M.World.add(engine.world, [tri]);
   return tri;
@@ -496,22 +504,39 @@ function prepare() {
     }
   });
 
+  function onCustom(custom, body, otherBody) {
+    console.log("custom: %s", body.custom);
+    if (custom === "goal") {
+      displaySpecialMessage("LEVEL UP!", () => {
+        displaySpecialMessage("+1000 POINTS");
+        score += 1000;
+      });
+
+      setMusic(false);
+      sfx.win.play();
+      reset();
+    } else if (custom === "boundary") {
+      ballsToRemove.push(otherBody);
+      needsNewBall = true;
+    } else if (custom.indexOf("sfx|") === 0) {
+      const sample = custom.split("|")[1];
+      sfx[sample].play();
+    }
+  }
+
   M.Events.on(engine, "collisionEnd", ev => {
     ev.pairs.forEach(({ bodyA, bodyB }) => {
       ++score;
       //soundEnabled && sfx.collision_1.play();
-      if (inArr(lowerBound, [bodyA, bodyB])) {
-        const ball = bodyA === lowerBound ? bodyB : bodyA;
-        ballsToRemove.push(ball);
-        needsNewBall = true;
+
+      if (bodyA.custom) {
+        onCustom(bodyA.custom, bodyA, bodyB);
+      }
+      if (bodyB.custom) {
+        onCustom(bodyB.custom, bodyB, bodyA);
       }
     });
   });
-
-  window.invert = false;
-
-  const YELLOW = "#DD2";
-  const DARK_GRAY = "#333";
 
   M.Events.on(render, "afterRender", function() {
     //M.Render.startViewTransform(render);
@@ -519,11 +544,11 @@ function prepare() {
     const ctx = render.context;
     ctx.font = "45px DotMatrixBold";
 
-    ctx.fillStyle = isBlinking ? (invert ? DARK_GRAY : YELLOW) : DARK_GRAY;
+    ctx.fillStyle = isBlinking ? YELLOW : DARK_GRAY;
     ctx.fillText("HHHHHHHHHHHHHHHHHHHHHHHHHHHH", 20 + 4.5, 50);
     ctx.fillText("HHHHHHHHHHHHHHHHHHHHHHHHHHHH", 20, 50);
 
-    ctx.fillStyle = isBlinking ? (invert ? YELLOW : DARK_GRAY) : YELLOW;
+    ctx.fillStyle = isBlinking ? DARK_GRAY : YELLOW;
     let msg;
     if (specialMessage) {
       msg = specialMessage;
