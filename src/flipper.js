@@ -7,12 +7,41 @@ const DEG2RAD = Math.PI / 180;
 const RAD2DEG = 180 / Math.PI;
 
 let currentLevel = 0;
+let score = 0;
+let spareBalls = 1;
+let extraBalls = 6;
+let blinkUntil = 0;
+let specialMessage = "";
 
 let highScore = loadLS("score", 0);
 let soundEnabled = loadLS("sound", true);
 let spawnPos;
-// testing "edge" cases
-//let spawnPos = [665, 130];
+let isBlinking = false;
+
+let displayTimer;
+function displaySpecialMessage(msg, duration = 1200) {
+  specialMessage = msg;
+  blinkUntil = getTime() + duration;
+
+  if (displayTimer) {
+    clearInterval(displayTimer);
+  }
+
+  displayTimer = setInterval(function() {
+    isBlinking = !isBlinking;
+    const t = getTime();
+    if (t > blinkUntil) {
+      clearInterval(displayTimer);
+      displayTimer = undefined;
+      specialMessage = "";
+      isBlinking = false;
+    }
+  }, 100);
+}
+
+function getTime() {
+  return new Date().valueOf();
+}
 
 function inArr(item, arr) {
   return arr.indexOf(item) !== -1;
@@ -69,16 +98,14 @@ const KC_LEFT = 37;
 const KC_RIGHT = 39;
 const KC_UP = 38;
 const KC_DOWN = 40;
-const KCS = [KC_Z, KC_M, KC_R, KC_S, KC_DOWN];
+const KC_ENTER = 13;
+const KCS = [KC_Z, KC_M, KC_R, KC_S, KC_DOWN, KC_SPACE, KC_ENTER];
 
 const keyIsDown = {};
 const keyIsUp = {};
 
 const ballsOnScreen = [];
 let ballsToRemove = [];
-let score = 0;
-let spareBalls = 3;
-let extraBalls = 6;
 
 function hookKeys() {
   document.addEventListener("keydown", ev => {
@@ -216,7 +243,7 @@ function createFlipper({
 
     const placeBackFlipper = keyIsUp[key];
     if (placeBackFlipper) {
-      wentDownF = new Date().valueOf() + 100;
+      wentDownF = getTime() + 100;
       keyIsUp[key] = false;
     }
 
@@ -228,7 +255,7 @@ function createFlipper({
       M.Body.setAngularVelocity(rect, angVel * n);
     } else {
       if (wentDownF > 0) {
-        var ctime = new Date().valueOf();
+        var ctime = getTime();
         if (ctime < wentDownF) {
           M.Body.setAngularVelocity(rect, -angVel * 0.3);
         } else {
@@ -383,6 +410,13 @@ function prepare() {
 
   let levelConfig, lowerBound;
 
+  function restart() {
+    score = 0;
+    currentLevel = 0;
+    spareBalls = 3;
+    extraBalls = 6;
+  }
+
   function reset() {
     beforeUpdateCbs = [];
     M.World.clear(engine.world);
@@ -436,6 +470,7 @@ function prepare() {
       if (spareBalls > 0) {
         addBall();
       } else if (spareBalls === 0) {
+        displaySpecialMessage("LOOKS LIKE YOU NEED BALLS...");
         for (let i = 0; i < extraBalls; ++i) {
           addBall();
         }
@@ -461,20 +496,25 @@ function prepare() {
     });
   });
 
+  window.invert = false;
+
+  const YELLOW = "#DD2";
+  const DARK_GRAY = "#333";
+
   M.Events.on(render, "afterRender", function() {
     //M.Render.startViewTransform(render);
 
     const ctx = render.context;
     ctx.font = "45px DotMatrixBold";
 
-    ctx.fillStyle = "#333";
+    ctx.fillStyle = isBlinking ? (invert ? DARK_GRAY : YELLOW) : DARK_GRAY;
     ctx.fillText("HHHHHHHHHHHHHHHHHHHHHHHHHHHH", 20 + 4.5, 50);
     ctx.fillText("HHHHHHHHHHHHHHHHHHHHHHHHHHHH", 20, 50);
 
-    ctx.fillStyle = "#DD2";
+    ctx.fillStyle = isBlinking ? (invert ? YELLOW : DARK_GRAY) : YELLOW;
     let msg;
-    if (ballsOnScreen.length === extraBalls) {
-      msg = "LOOKS LIKE YOU NEED BALLS...";
+    if (specialMessage) {
+      msg = specialMessage;
     } else if (ballsOnScreen.length > 0) {
       msg =
         "HIGH:" +
