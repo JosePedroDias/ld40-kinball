@@ -4,13 +4,16 @@ Entry by @jose_pedro_dias and @asilva4000
 
 ## TODO
 
-### create elements for:
+### features
 
 * labels logic for bumpers/points/goal/song change
+* tilt action
 
 ### content:
 
+* title
 * create level(s)
+* tweak visuals (hide aux bodies, change colors?)
 
 ### compatibility:
 
