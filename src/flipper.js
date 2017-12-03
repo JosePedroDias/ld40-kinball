@@ -7,12 +7,43 @@ const DEG2RAD = Math.PI / 180;
 const RAD2DEG = 180 / Math.PI;
 
 let currentLevel = 0;
+let score = 0;
+let spareBalls = 3;
+let extraBalls = 6;
+let blinkUntil = 0;
+let specialMessage = "";
 
 let highScore = loadLS("score", 0);
 let soundEnabled = loadLS("sound", true);
 let spawnPos;
-// testing "edge" cases
-//let spawnPos = [665, 130];
+let isBlinking = false;
+
+let displayTimer;
+function displaySpecialMessage(msg, onDone) {
+  const duration = 1200;
+  specialMessage = msg;
+  blinkUntil = getTime() + duration;
+
+  if (displayTimer) {
+    clearInterval(displayTimer);
+  }
+
+  displayTimer = setInterval(function() {
+    isBlinking = !isBlinking;
+    const t = getTime();
+    if (t > blinkUntil) {
+      clearInterval(displayTimer);
+      displayTimer = undefined;
+      specialMessage = "";
+      isBlinking = false;
+      onDone && onDone();
+    }
+  }, 100);
+}
+
+function getTime() {
+  return new Date().valueOf();
+}
 
 function getRandomInt(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
@@ -64,6 +95,9 @@ function p(arr) {
   return { x: arr[0], y: arr[1] };
 }
 
+const YELLOW = "#DD2";
+const DARK_GRAY = "#333";
+
 const KC_Z = 90;
 const KC_M = 77;
 const KC_R = 82;
@@ -74,16 +108,14 @@ const KC_LEFT = 37;
 const KC_RIGHT = 39;
 const KC_UP = 38;
 const KC_DOWN = 40;
-const KCS = [KC_Z, KC_M, KC_R, KC_S, KC_DOWN, KC_T];
+const KC_ENTER = 13;
+const KCS = [KC_Z, KC_M, KC_R, KC_S, KC_DOWN, KC_ENTER, KC_T];
 
 const keyIsDown = {};
 const keyIsUp = {};
 
 const ballsOnScreen = [];
 let ballsToRemove = [];
-let score = 0;
-let spareBalls = 3;
-let extraBalls = 6;
 
 let currentTilt = 0;
 let nextTilt = 0;
@@ -128,6 +160,10 @@ function hookKeys() {
 
     if (kc === KC_DOWN) {
       soundEnabled && sfx.ball_out.play();
+    }
+
+    if (kc === KC_ENTER && ballsOnScreen.length === 0) {
+      restart();
     }
 
     keyIsDown[kc] = false;
@@ -226,7 +262,7 @@ function createFlipper({
 
     const placeBackFlipper = keyIsUp[key];
     if (placeBackFlipper) {
-      wentDownF = new Date().valueOf() + 100;
+      wentDownF = getTime() + 100;
       keyIsUp[key] = false;
     }
 
@@ -238,7 +274,7 @@ function createFlipper({
       M.Body.setAngularVelocity(rect, angVel * n);
     } else {
       if (wentDownF > 0) {
-        var ctime = new Date().valueOf();
+        var ctime = getTime();
         if (ctime < wentDownF) {
           M.Body.setAngularVelocity(rect, -angVel * 0.3);
         } else {
@@ -263,10 +299,11 @@ function createRect({ engine, pos, dims, angle, options }) {
   return rectangle;
 }
 
-function createPlunger({ engine, pos, dims, angle }) {
+function createPlunger({ engine, pos, dims, angle, options }) {
   const rectangle = M.Bodies.rectangle(pos[0], pos[1], dims[0], dims[1], {
     angle: angle * DEG2RAD,
-    density: 0.3
+    density: 0.3,
+    ...options
   });
 
   const dx = 10;
@@ -320,11 +357,12 @@ function createSphere({ engine, pos, r }) {
   return sphere;
 }
 
-function createBumper({ engine, pos, r }) {
+function createBumper({ engine, pos, r, options }) {
   const sphere = M.Bodies.circle(pos[0], pos[1], r, {
     //density: 0.0001, // 0.001
     friction: 1,
-    restitution: 2
+    restitution: 2,
+    ...options
   });
 
   const constraint = M.Constraint.create({
@@ -340,14 +378,15 @@ function createBumper({ engine, pos, r }) {
   M.World.add(engine.world, [sphere, constraint]);
 }
 
-function createTriangleBumper({ engine, pos, v0, v1, v2, r }) {
+function createTriangleBumper({ engine, pos, v0, v1, v2, r, options }) {
   const originalVerts = [v0, v1, v2].map(p);
   const verts = r ? M.Vertices.chamfer(originalVerts, r) : originalVerts;
   const ctr = p(pos) || M.Vertices.centre(originalVerts);
   const tri = M.Bodies.fromVertices(ctr.x, ctr.y, verts, {
     isStatic: true,
     friction: 1,
-    restitution: 2
+    restitution: 2,
+    ...options
   });
   M.World.add(engine.world, [tri]);
   return tri;
@@ -392,6 +431,17 @@ function prepare() {
   });
 
   let levelConfig, lowerBound;
+
+  function restart() {
+    sfx.gameover.stop();
+    score = 0;
+    currentLevel = 0;
+    spareBalls = 3;
+    extraBalls = 6;
+    reset();
+    displaySpecialMessage("INSERTED COIN");
+  }
+  window.restart = restart;
 
   function reset() {
     beforeUpdateCbs = [];
@@ -495,13 +545,18 @@ function prepare() {
       needsNewBall = false;
       --spareBalls;
       if (spareBalls > 0) {
+        // still have extra balls
         addBall();
       } else if (spareBalls === 0) {
+        // no more, SPAM the MOFO
+        displaySpecialMessage("LOOKS LIKE YOU NEED BALLS...");
         for (let i = 0; i < extraBalls; ++i) {
           addBall();
         }
       } else if (ballsOnScreen.length === 0) {
-        //M.Engine.
+        // game over
+        setMusic(false);
+        soundEnabled && sfx.gameover.play();
         if (score > highScore) {
           highScore = score;
           saveLS("score", highScore);
@@ -510,14 +565,36 @@ function prepare() {
     }
   });
 
+  function onCustom(custom, body, otherBody) {
+    console.log("custom: %s", body.custom);
+    if (custom === "goal") {
+      displaySpecialMessage("LEVEL UP!", () => {
+        displaySpecialMessage("+1000 POINTS");
+        score += 1000;
+      });
+
+      setMusic(false);
+      sfx.win.play();
+      reset();
+    } else if (custom === "boundary") {
+      ballsToRemove.push(otherBody);
+      needsNewBall = true;
+    } else if (custom.indexOf("sfx|") === 0) {
+      const sample = custom.split("|")[1];
+      sfx[sample].play();
+    }
+  }
+
   M.Events.on(engine, "collisionEnd", ev => {
     ev.pairs.forEach(({ bodyA, bodyB }) => {
       ++score;
       //soundEnabled && sfx.collision_1.play();
-      if (inArr(lowerBound, [bodyA, bodyB])) {
-        const ball = bodyA === lowerBound ? bodyB : bodyA;
-        ballsToRemove.push(ball);
-        needsNewBall = true;
+
+      if (bodyA.custom) {
+        onCustom(bodyA.custom, bodyA, bodyB);
+      }
+      if (bodyB.custom) {
+        onCustom(bodyB.custom, bodyB, bodyA);
       }
     });
   });
@@ -528,14 +605,14 @@ function prepare() {
     const ctx = render.context;
     ctx.font = "45px DotMatrixBold";
 
-    ctx.fillStyle = "#333";
+    ctx.fillStyle = isBlinking ? YELLOW : DARK_GRAY;
     ctx.fillText("HHHHHHHHHHHHHHHHHHHHHHHHHHHH", 20 + 4.5, 50);
     ctx.fillText("HHHHHHHHHHHHHHHHHHHHHHHHHHHH", 20, 50);
 
-    ctx.fillStyle = "#DD2";
+    ctx.fillStyle = isBlinking ? DARK_GRAY : YELLOW;
     let msg;
-    if (ballsOnScreen.length === extraBalls) {
-      msg = "LOOKS LIKE YOU NEED BALLS...";
+    if (specialMessage) {
+      msg = specialMessage;
     } else if (ballsOnScreen.length > 0) {
       msg =
         "HIGH:" +
