@@ -108,6 +108,7 @@ levelBuilders.push(function buildLevel(engine, W, H) {
 
   return {
     lowerBound,
-    spawnPos: [W * 0.88, H * 0.5]
+    spawnPos: [W * 0.88, H * 0.5],
+    musicIndex: 0
   };
 });

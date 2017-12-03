@@ -381,19 +381,23 @@ function prepare() {
     beforeUpdateCbs.forEach(cb => cb());
   });
 
-  let o, lowerBound;
+  let levelConfig, lowerBound;
 
   function reset() {
     beforeUpdateCbs = [];
     M.World.clear(engine.world);
     M.Engine.clear(engine);
 
-    o = levelBuilders[currentLevel](engine, W, H);
-    lowerBound = o.lowerBound;
-    spawnPos = o.spawnPos;
-    ++currentLevel;
+    levelConfig = levelBuilders[currentLevel](engine, W, H);
+    lowerBound = levelConfig.lowerBound;
+    spawnPos = levelConfig.spawnPos;
 
     addBall();
+
+    loadMusic(levelConfig.musicIndex);
+    setMusic(soundEnabled);
+
+    ++currentLevel;
   }
   window.reset = reset;
 
@@ -489,9 +493,6 @@ function prepare() {
 
   M.Engine.run(engine);
   M.Render.run(render);
-
-  loadMusic(0);
-  setMusic(soundEnabled);
 }
 
 prepare();
