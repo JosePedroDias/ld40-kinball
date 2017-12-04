@@ -8,7 +8,7 @@ const RAD2DEG = 180 / Math.PI;
 
 let currentLevel = 0;
 let score = 0;
-let spareBalls = 3;
+let spareBalls = 1;
 let extraBalls = 6;
 let blinkUntil = 0;
 let won = false;
@@ -122,7 +122,6 @@ let ballsToRemove = [];
 let currentTilt = 0;
 let nextTilt = 0;
 let stopTilt = 0;
-
 
 function hookKeys() {
   document.addEventListener("keydown", ev => {
@@ -486,7 +485,6 @@ function prepare() {
     });
 
     levelConfig = levelBuilders[currentLevel](engine, W, H);
-    lowerBound = levelConfig.lowerBound;
     spawnPos = levelConfig.spawnPos;
 
     addBall();
@@ -512,7 +510,6 @@ function prepare() {
       return;
     }
 
-
     /* process tilt key */
     let tilt_offset_x = 0;
     let tilt_offset_y = 0;
@@ -520,7 +517,7 @@ function prepare() {
 
     if (keyIsDown[KC_T]) {
       const cdate = new Date().valueOf();
-      if (currentTilt === 0){
+      if (currentTilt === 0) {
         ///console.log('Set new tilt');
         currentTilt = cdate;
         nextTilt = cdate + 10000; //10 seconds cool down
@@ -531,39 +528,37 @@ function prepare() {
         ballsOnScreen.forEach(b => {
           M.Body.applyForce(b, b.position, {
             x: new_offset_x,
-            y: new_offset_y,
+            y: new_offset_y
           });
         });
-      } else if (cdate < stopTilt){
+      } else if (cdate < stopTilt) {
         //console.log('Grace time');
         apply_tilt = true;
       }
 
       //apply_tilt = false; // disable shake cam
-      if (apply_tilt){
+      if (apply_tilt) {
         //console.log('Applying tilt');
         tilt_offset_x = getRandomInt(-10, 10);
         tilt_offset_y = getRandomInt(-10, 10);
         buffer = [];
       }
-
-    } else if (keyIsUp[KC_T]){
+    } else if (keyIsUp[KC_T]) {
       keyIsUp[KC_T] = false;
     }
 
     /* reset tilt state */
-    if (currentTilt !== 0 && new Date().valueOf() > nextTilt){
+    if (currentTilt !== 0 && new Date().valueOf() > nextTilt) {
       //console.log('RESETING TILT');
       currentTilt = 0;
       nextTilt = 0;
       stopTilt = 0;
     }
 
-
     const s = clamp(40 * ballsOnScreen[0].speed, 200, 100000);
     const cam_offset_x = s + tilt_offset_x;
     const cam_offset_y = s + tilt_offset_y;
-    const v = accum({ x: cam_offset_x , y: cam_offset_y }, buffer, 180);
+    const v = accum({ x: cam_offset_x, y: cam_offset_y }, buffer, 180);
     M.Render.lookAt(render, ballsOnScreen, v, false);
   });
 
