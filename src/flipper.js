@@ -8,7 +8,7 @@ const RAD2DEG = 180 / Math.PI;
 
 let currentLevel = 0;
 let score = 0;
-let spareBalls = 1;
+let spareBalls = 3;
 let extraBalls = 6;
 let blinkUntil = 0;
 let won = false;
@@ -650,25 +650,45 @@ function prepare() {
     M.World.remove(engine.world, ball);
   }
 
-  function onCustom(custom, body, otherBody) {
-    console.log("custom: %s", body.custom);
-    if (custom === "goal") {
-      won = true;
-      displaySpecialMessage("LEVEL UP!", () => {
-        displaySpecialMessage("+1000 POINTS");
-        score += 1000;
-      });
-      ballsOnScreen.forEach(b => ballsToRemove.push(b));
+  function win() {
+    won = true;
+    displaySpecialMessage("LEVEL UP!", () => {
+      displaySpecialMessage("+1000 POINTS");
+      score += 1000;
+    });
+    ballsOnScreen.forEach(b => ballsToRemove.push(b));
 
-      setMusic(false);
-      soundEnabled && sfx.win.play();
-    } else if (custom === "boundary") {
-      ballsToRemove.push(otherBody);
-      needsNewBall = true;
-    } else if (custom.indexOf("sfx|") === 0) {
-      const sample = custom.split("|")[1];
-      soundEnabled && sfx[sample].play();
-    }
+    setMusic(false);
+    soundEnabled && sfx.win.play();
+  }
+  window.win = win;
+
+  function onCustom(_custom, body, otherBody) {
+    console.log("custom: %s", _custom);
+
+    _custom.split(" ").forEach(custom => {
+      if (custom === "goal") {
+        win();
+      } else if (custom === "boundary") {
+        ballsToRemove.push(otherBody);
+        needsNewBall = true;
+      } else if (custom.indexOf("sfx|") === 0) {
+        const sample = custom.split("|")[1];
+        soundEnabled && sfx[sample].play();
+      } else if (custom === "brick") {
+        // to make it without multiple colors
+        const nextColor =
+          body.remainingBrickColors && body.remainingBrickColors.shift();
+        if (nextColor) {
+          body.render.fillStyle = nextColor;
+        } else {
+          ballsToRemove.push(body);
+          if ("brickDone" in body) {
+            body.brickDone(body);
+          }
+        }
+      }
+    });
   }
 
   M.Events.on(engine, "collisionEnd", ev => {
