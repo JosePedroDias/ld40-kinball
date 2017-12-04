@@ -346,8 +346,8 @@ function createRect({ engine, pos, dims, angle, options }) {
   return rectangle;
 }
 
-function createRotatingPolygon({ engine, pos, r, sides, spinsPerSecond }) {
-  const poly = M.Bodies.polygon(pos[0], pos[1], sides, r, { isStatic: true });
+function createRotatingPolygon({ engine, pos, r, spinsPerSecond, sides, options }) {
+  const poly = M.Bodies.polygon(pos[0], pos[1], sides, r, options);
   const dAngle = spinsPerSecond * 360 * DEG2RAD / 60;
   beforeUpdateCbs.push(() => {
     M.Body.setAngle(poly, poly.angle + dAngle);
@@ -544,7 +544,28 @@ function prepare() {
 
     addBall();
 
-    loadMusic(levelConfig.musicIndex);
+    loadMusic(levelConfig.musicIndex, function(){
+      //console.log('called my get part, spare balls - ' + spareBalls + ' number of balls on screen ' + ballsOnScreen.length + 'xxxx' + ballsOnScreen[0].position.x + 'yyyyyyy' + ballsOnScreen[0].position.y  );
+      // if (spareBalls <= 0){
+      //   console.log('music in panic mode');
+      //   return 2;
+      // }
+
+      if (ballsOnScreen.length){
+        if (ballsOnScreen[0].position.y <= levelConfig.higher_h){
+          //console.log('music in higher mode');
+          return 2;
+        }
+        if (ballsOnScreen[0].position.y <= levelConfig.middle_h){
+          //console.log('music in middle mode');
+          return 1;
+        }
+        //console.log('music in lower mode');
+        return 0;
+      }
+      //console.log('no balls');
+      return 0;
+    });
     setMusic(soundEnabled);
 
     ++currentLevel;
