@@ -517,6 +517,7 @@ function prepare() {
         --spareBalls;
         if (spareBalls > 0) {
           // still have extra balls
+          displaySpecialMessage("       TRY AGAIN   O x " + spareBalls);
           soundEnabled && sfx.try_again.play();
           
           addBall();
