@@ -729,15 +729,16 @@ function prepare() {
 
   M.Events.on(engine, "collisionEnd", ev => {
     ev.pairs.forEach(({ bodyA, bodyB }) => {
-      ++score;
       //soundEnabled && sfx.collision_1.play();
 
       // all the bodies who have sound will restore to their original colors on collision end
       if (bodyA.custom && bodyA.custom.indexOf('sfx|') !== -1 && bodyA.render && bodyA.render.oldFillStyle){
+        ++score;
         bodyA.render.fillStyle = bodyA.render.oldFillStyle;
         bodyA.render.oldFillStyle = undefined;
       }
       if (bodyB.custom && bodyB.custom.indexOf('sfx|') !== -1 && bodyB.render && bodyB.render.oldFillStyle){
+        ++score;
         bodyB.render.fillStyle = bodyB.render.oldFillStyle;
         bodyA.render.oldFillStyle = undefined;
       }
