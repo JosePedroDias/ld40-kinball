@@ -665,9 +665,9 @@ function prepare() {
   function win() {
     won = true;
     soundEnabled && sfx.dingding.play();
-    displaySpecialMessage("LEVEL UP!", () => {
+    displaySpecialMessage("           LEVEL UP!", () => {
       soundEnabled && sfx.dingding.play();
-      displaySpecialMessage("+1000 POINTS");
+      displaySpecialMessage("          +1000 POINTS");
       score += 1000;
     });
     ballsOnScreen.forEach(b => ballsToRemove.push(b));
@@ -773,7 +773,7 @@ function prepare() {
         " L:" +
         currentLevel;
     } else {
-      msg = won ? "PRESS ENTER TO CONTINUE" : "GAME OVER";
+      msg = won ? "    PRESS ENTER TO CONTINUE" : "           GAME OVER";
     }
     ctx.fillText(msg, 20, 50);
 
