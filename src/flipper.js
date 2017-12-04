@@ -19,6 +19,10 @@ let soundEnabled = loadLS("sound", true);
 let spawnPos;
 let isBlinking = false;
 let needsNewBall = false;
+let propagate_key_up_left_flippers = 0;
+let propagate_key_up_right_flippers = 0;
+let number_of_left_flippers = 0;
+let number_of_right_flippers = 0;
 
 let displayTimer;
 function displaySpecialMessage(msg, onDone) {
@@ -40,7 +44,7 @@ function displaySpecialMessage(msg, onDone) {
       isBlinking = false;
       onDone && onDone();
     }
-  }, 100);
+  }, 150);
 }
 
 function getTime() {
@@ -192,7 +196,8 @@ function createArc({ pos, r, a0, a1, steps, dims, options }) {
   for (let i = 0; i <= steps; ++i) {
     const p = polarMove({ pos, r, angle: a });
     const rect = M.Bodies.rectangle(p[0], p[1], dims[0], dims[1], {
-      angle: a * DEG2RAD
+      angle: a * DEG2RAD,
+      render: options.render
     });
     parts.push(rect);
 
@@ -206,14 +211,14 @@ function createFlipperShape({ pos, ra, rb, length, options }) {
   const pa = [pos[0] - length / 2, pos[1]];
   const pb = [pos[0] + length / 2, pos[1]];
 
-  const circleA = M.Bodies.circle(pa[0], pa[1], ra);
-  const circleB = M.Bodies.circle(pb[0], pb[1], rb);
+  const circleA = M.Bodies.circle(pa[0], pa[1], ra, {render: options.render});
+  const circleB = M.Bodies.circle(pb[0], pb[1], rb, {render: options.render});
   const poly = M.Bodies.fromVertices(pos[0], pos[1], [
     { x: pa[0], y: pa[1] - ra },
     { x: pa[0], y: pa[1] + ra },
     { x: pb[0], y: pb[1] + rb },
     { x: pb[0], y: pb[1] - rb }
-  ]);
+  ], {render: options.render});
 
   return M.Body.create({ parts: [circleA, circleB, poly] }, options);
 }
@@ -225,11 +230,18 @@ function createFlipper({
   nailRelPos,
   minAngle,
   key,
-  angVel
+  angVel,
+  renderOptions
 }) {
   const nailPos = { x: pos[0] + nailRelPos[0], y: pos[1] + nailRelPos[1] };
 
   const invertAngles = nailRelPos[0] > 0;
+
+  if (invertAngles){
+    number_of_right_flippers++;
+  } else {
+    number_of_left_flippers++;
+  }
 
   //const rect = M.Bodies.rectangle(nailPos.x, nailPos.y, dims[0], dims[1], {
   //  density: 0.0015
@@ -240,7 +252,7 @@ function createFlipper({
     ra: invertAngles ? 12 : 16,
     rb: invertAngles ? 16 : 12,
     length: dims[0] - Math.max(24, 16),
-    options: { density: 0.0015 }
+    options: { density: 0.0015, render: renderOptions }
   });
 
   const limitR = 5;
@@ -251,7 +263,8 @@ function createFlipper({
     angle: invertAngles ? 180 - minAngle : minAngle
   });
   const ballMax = M.Bodies.circle(ballMaxPos[0], ballMaxPos[1], limitR, {
-    isStatic: true
+    isStatic: true,
+    render: renderOptions
   });
 
   var constraint = M.Constraint.create({
@@ -262,14 +275,36 @@ function createFlipper({
   });
 
   let wentDownF = 0;
+  let is_key_up_master = false;
 
   beforeUpdateCbs.push(() => {
     const rotateFlipper = keyIsDown[key];
+    const keyIsUpPressed = keyIsUp[key];
+    let propagate_flipper = 0;
+    if (invertAngles){
+      propagate_flipper = propagate_key_up_left_flippers;
+    } else {
+      propagate_flipper = propagate_key_up_right_flippers;
+    }
 
-    const placeBackFlipper = keyIsUp[key];
+    const placeBackFlipper = keyIsUpPressed || (propagate_flipper > 0 && !is_key_up_master);
     if (placeBackFlipper) {
       wentDownF = getTime() + 100;
-      keyIsUp[key] = false;
+      if (keyIsUpPressed){
+        keyIsUp[key] = false;
+        is_key_up_master = true;
+        if (invertAngles){
+          propagate_key_up_left_flippers = number_of_left_flippers - 1;
+        } else {
+          propagate_key_up_right_flippers = number_of_right_flippers - 1;
+        }
+      } else {
+        if (invertAngles){
+          propagate_key_up_left_flippers--;
+        } else {
+          propagate_key_up_right_flippers--;
+        }
+      }
     }
 
     if (rotateFlipper) {
@@ -285,6 +320,7 @@ function createFlipper({
           M.Body.setAngularVelocity(rect, -angVel * 0.3);
         } else {
           wentDownF = 0;
+          is_key_up_master = false;
         }
       }
     }
@@ -345,7 +381,7 @@ function createPlunger({ engine, pos, dims, angle, options }) {
     if (keyIsDown[KC_DOWN]) {
       M.Body.applyForce(rectangle, rectangle.position, {
         x: 0,
-        y: 10
+        y: 20
       });
     }
   });
@@ -485,8 +521,11 @@ function prepare() {
       }
     });
 
+    number_of_left_flippers = 0;
+    number_of_right_flippers = 0;
+    propagate_key_up_right_flippers = 0;
+    propagate_key_up_left_flippers = 0;
     levelConfig = levelBuilders[currentLevel](engine, W, H);
-    lowerBound = levelConfig.lowerBound;
     spawnPos = levelConfig.spawnPos;
 
     addBall();
@@ -495,7 +534,7 @@ function prepare() {
     setMusic(soundEnabled);
 
     ++currentLevel;
-    if (currentLevel >= levelBuilders.length) {
+    if (currentLevel > levelBuilders.length) {
       currentLevel = 0;
     }
   }
@@ -563,6 +602,8 @@ function prepare() {
     const s = clamp(40 * ballsOnScreen[0].speed, 200, 100000);
     const cam_offset_x = s + tilt_offset_x;
     const cam_offset_y = s + tilt_offset_y;
+    //const cam_offset_x = s + tilt_offset_x + 1000;
+    //const cam_offset_y = s + tilt_offset_y + 1000;
     const v = accum({ x: cam_offset_x , y: cam_offset_y }, buffer, 180);
     M.Render.lookAt(render, ballsOnScreen, v, false);
   });
