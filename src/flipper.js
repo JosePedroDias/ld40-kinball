@@ -546,10 +546,10 @@ function prepare() {
 
     loadMusic(levelConfig.musicIndex, function(){
       //console.log('called my get part, spare balls - ' + spareBalls + ' number of balls on screen ' + ballsOnScreen.length + 'xxxx' + ballsOnScreen[0].position.x + 'yyyyyyy' + ballsOnScreen[0].position.y  );
-      // if (spareBalls <= 0){
-      //   console.log('music in panic mode');
-      //   return 2;
-      // }
+      if (spareBalls <= 0 && ballsOnScreen.length > 2){
+        //console.log('music in panic mode');
+        return 2;
+      }
 
       if (ballsOnScreen.length){
         if (ballsOnScreen[0].position.y <= levelConfig.higher_h){
@@ -634,8 +634,8 @@ function prepare() {
     const s = clamp(40 * ballsOnScreen[0].speed, 200, 100000);
     const cam_offset_x = s + tilt_offset_x;
     const cam_offset_y = s + tilt_offset_y;
-    //const cam_offset_x = s + tilt_offset_x + 1000;
-    //const cam_offset_y = s + tilt_offset_y + 1000;
+    // const cam_offset_x = s + tilt_offset_x + 500;
+    // const cam_offset_y = s + tilt_offset_y + 500;
     const v = accum({ x: cam_offset_x, y: cam_offset_y }, buffer, 180);
     M.Render.lookAt(render, ballsOnScreen, v, false);
   });
@@ -682,7 +682,7 @@ function prepare() {
         if (nextColor) {
           body.render.fillStyle = nextColor;
         } else {
-          ballsToRemove.push(body);
+          M.World.remove(engine.world, body);
           if ("brickDone" in body) {
             body.brickDone(body);
           }
