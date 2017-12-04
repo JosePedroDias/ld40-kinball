@@ -54,6 +54,8 @@
 
       cv++;
 
+      var needs_reset = false;
+
       if (cv >= max_variants) {
         cv = 0;
 
@@ -61,15 +63,13 @@
       if (cp >= max_progress) {
         cp = 0;
       }*/
-
-        var needs_reset = false;
         cp = getPart();
-        if (cp == last_played){
+        if (cp === last_played){
           last_played_times++;
-          if (last_played_times === max_plays){
+          if (last_played_times >= max_plays){
             //console.log("Moving on ...")
-            if (cp === 3){
-              cp = 2;
+            if (cp >= 2){
+              cp = 1;
             } else {
               cp++;
             }
@@ -85,9 +85,11 @@
         last_played_times = 0;  
       }
 
+
       current_loop = progress[cp] + "_" + variants[cv];
 
       //console.log('Changing loop to ' + current_loop);
+      //console.log('current part = ' + cp);
 
       music_parts.play(current_loop);
     };

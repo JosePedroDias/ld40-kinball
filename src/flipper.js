@@ -524,6 +524,7 @@ function prepare() {
     sfx.win.stop();
     sfx.gameover.stop();
     won = false;
+    spareBalls = 3;
     beforeUpdateCbs = [];
     M.World.clear(engine.world);
     M.Engine.clear(engine);

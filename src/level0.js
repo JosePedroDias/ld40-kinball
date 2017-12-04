@@ -4,6 +4,8 @@ levelBuilders.push(function buildLevel(engine, W, H) {
   const goalColor = "#76ff03"; //green
   const triangleBumperColor = "#673ab7";//purple
 
+  const circularBumperColor = "#ffc046";//yellow
+
   const wallColorDark = "#808e95"; //gray light
 
   const orangeDestructible_1 = "#ff6f00";//orange dark
@@ -316,14 +318,24 @@ levelBuilders.push(function buildLevel(engine, W, H) {
     engine,
     pos: [200, 300],
     r: 32,
-    options: { custom: "sfx|collision_3" }
+    options: {
+      custom: "sfx|collision_3",
+      render: {
+        fillStyle: circularBumperColor
+      }
+    }
   });
 
   createBumper({
     engine,
     pos: [600, 300],
     r: 32,
-    options: { custom: "sfx|collision_3" }
+    options: {
+      custom: "sfx|collision_3",
+      render: {
+        fillStyle: circularBumperColor
+      }
+    }
   });
 
 
@@ -332,14 +344,24 @@ levelBuilders.push(function buildLevel(engine, W, H) {
     engine,
     pos: [400, -650],
     r: 48,
-    options: { custom: "sfx|collision_3" }
+    options: {
+      custom: "sfx|collision_3",
+      render: {
+        fillStyle: circularBumperColor
+      }
+    }
   });
 
   createBumper({
     engine,
     pos: [400, -850],
     r: 48,
-    options: { custom: "sfx|collision_3" }
+    options: {
+      custom: "sfx|collision_3",
+      render: {
+        fillStyle: circularBumperColor
+      }
+    }
   });
 
 
