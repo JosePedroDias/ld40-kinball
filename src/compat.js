@@ -99,6 +99,8 @@ window.resetLS = function resetLS() {
 
       cv++;
 
+      var needs_reset = false;
+
       if (cv >= max_variants) {
         cv = 0;
 
@@ -106,15 +108,13 @@ window.resetLS = function resetLS() {
       if (cp >= max_progress) {
         cp = 0;
       }*/
-
-        var needs_reset = false;
         cp = getPart();
-        if (cp == last_played){
+        if (cp === last_played){
           last_played_times++;
-          if (last_played_times === max_plays){
+          if (last_played_times >= max_plays){
             //console.log("Moving on ...")
-            if (cp === 3){
-              cp = 2;
+            if (cp >= 2){
+              cp = 1;
             } else {
               cp++;
             }
@@ -130,9 +130,11 @@ window.resetLS = function resetLS() {
         last_played_times = 0;  
       }
 
+
       current_loop = progress[cp] + "_" + variants[cv];
 
       //console.log('Changing loop to ' + current_loop);
+      //console.log('current part = ' + cp);
 
       music_parts.play(current_loop);
     };
@@ -223,10 +225,1314 @@ window.setSfx = function setSfx(state) {
   });
 };
 levelBuilders.push(function buildLevel(engine, W, H) {
+  var flipperColor = "#ff8f00"; //orange
+  var plungerColor = "#fdd835"; //yellow
+  var goalColor = "#76ff03"; //green
+  var triangleBumperColor = "#673ab7";//purple
+
+  var circularBumperColor = "#ffc046";//yellow
+
+  var wallColorDark = "#808e95"; //gray light
+
+  var orangeDestructible_1 = "#ff6f00";//orange dark
+  var orangeDestructible_2 = "#ffa000";//orange
+  var orangeDestructible_3 = "#ffca28";//orange light
+
+  var redDestructible_1 = "#a30000";//red dark
+  var redDestructible_2 = "#ff6434";//red
+  var redDestructible_3 = "#f48fb1";//red light
+
+  var tealishDestructible_1 = "#004c40";//teal dark
+  var tealishDestructible_2 = "#00796b";//teal
+  var tealishDestructible_3 = "#48a999";//teal light
+  var pinkish = "#ec407a";//pink
+
+  var gatewayColor = "#b2ebf2";//teal
+
+  var boundsAreVisible = false;
+
+  // BOUNDS
+
+  var lowerBound = createRect({
+    engine,
+    pos: [W * 0.7, H * 1.6],
+    dims: [W * 4, 64],
+    angle: 0,
+    options: {
+      custom: "boundary",
+      render: {
+        visible: boundsAreVisible
+      }
+    }
+  });
+
+  var upperBound = createRect({
+    engine,
+    pos: [W * 0.7, -1500],
+    dims: [W * 4, 64],
+    angle: 0,
+    options: {
+      custom: "boundary",
+      render: {
+        visible: boundsAreVisible
+      }
+    }
+  });
+
+  var leftBound = createRect({
+    engine,
+    pos: [-1010, -273],
+    dims: [64, H * 4],
+    angle: 0,
+    options: {
+      custom: "boundary",
+      render: {
+        visible: boundsAreVisible
+      }
+    }
+  });
+
+  var rightBound = createRect({
+    engine,
+    pos: [2130, -273],
+    dims: [64, H * 4],
+    angle: 0,
+    options: {
+      custom: "boundary",
+      render: {
+        visible: boundsAreVisible
+      }
+    }
+  });
+
+  createTriangleBumper({
+    engine,
+    pos: [100, -150],
+    v0: [0, 0],
+    v1: [80, 80],
+    v2: [0, 160],
+    options: {
+      custom: "sfx|collision_2",
+      render: {
+        fillStyle: triangleBumperColor
+      }
+    }
+  });
+
+  createTriangleBumper({
+    engine,
+    pos: [100, 80],
+    v0: [0, 0],
+    v1: [80, 80],
+    v2: [0, 160],
+    options: {
+      custom: "sfx|collision_2",
+      render: {
+        fillStyle: triangleBumperColor
+      }
+    }
+  });
+
+  createTriangleBumper({
+    engine,
+    pos: [100, 300],
+    v0: [0, 0],
+    v1: [80, 80],
+    v2: [0, 160],
+    options: {
+      custom: "sfx|collision_2",
+      render: {
+        fillStyle: triangleBumperColor
+      }
+    }
+  });
+
+  //triangle left top
+  createTriangleBumper({
+    engine,
+    pos: [700, -150],
+    v0: [80, 0],
+    v1: [0, 80],
+    v2: [80, 160],
+    options: {
+      custom: "sfx|collision_2",
+      render: {
+        fillStyle: triangleBumperColor
+      }
+    }
+  });
+
+  //triangle left middle
+  createTriangleBumper({
+    engine,
+    pos: [700, 80],
+    v0: [80, 0],
+    v1: [0, 80],
+    v2: [80, 160],
+    options: {
+      custom: "sfx|collision_2",
+      render: {
+        fillStyle: triangleBumperColor
+      }
+    }
+  });
+
+  //triangle left bottom
+  createTriangleBumper({
+    engine,
+    pos: [700, 300],
+    v0: [80, 0],
+    v1: [0, 80],
+    v2: [80, 160],
+    options: {
+      custom: "sfx|collision_2",
+      render: {
+        fillStyle: triangleBumperColor
+      }
+    }
+  });
+
+
+  // bottom to top
+
+  //left flipper lower
+  createFlipper({
+    engine,
+    pos: [W / 2 - 100, H * 0.9],
+    dims: [128, 24],
+    nailRelPos: [-48, 0],
+    minAngle: 60,
+    key: KC_Z,
+    angVel: -0.3,
+    renderOptions: {
+      fillStyle: flipperColor
+    }
+  });
+
+  //right flipper lower
+  createFlipper({
+    engine,
+    pos: [W / 2 + 100, H * 0.9],
+    dims: [128, 24],
+    nailRelPos: [48, 0],
+    minAngle: 60,
+    key: KC_M,
+    angVel: 0.3,
+    renderOptions: {
+      fillStyle: flipperColor
+    }
+  });
+
+  // left rectangle - flipper to corner - lower
+  createRect({
+    engine,
+    pos: [W / 2 - 250, H * 0.8],
+    dims: [200, 24],
+    angle: 30,
+    options: {
+      render: {
+        fillStyle: wallColorDark
+      }
+    }
+  });
+
+  // right rectangle - flipper to corner - lower
+  createRect({
+    engine,
+    pos: [W / 2 + 250, H * 0.8],
+    dims: [200, 24],
+    angle: -30,
+    options: {
+      render: {
+        fillStyle: wallColorDark
+      }
+    }
+  });
+
+  // left pillar - 2 from flipper
+  createRect({
+    engine,
+    pos: [W / 2 - 340, -210 + 200],
+    dims: [1300-400, 24],
+    angle: 90,
+    options: {
+      render: {
+        fillStyle: wallColorDark
+      }
+    }
+  });
+
+  // right pillar ball tunel - 2 from flipper
+  createRect({
+    engine,
+    pos: [W / 2 + 340, -210 + 200],
+    dims: [1300-400, 24],
+    angle: 90,
+    options: {
+      render: {
+        fillStyle: wallColorDark
+      }
+    }
+  });
+
+  // rightmost pillar tunnel - start
+  createRect({
+    engine,
+    pos: [W / 2 + 420, -210 + 200],
+    dims: [1300-400, 24],
+    angle: 90,
+    options: {
+      render: {
+        fillStyle: wallColorDark
+      }
+    }
+  });
+
+  //first arc - start - right
+  var arc1 = createArc({
+    pos: [730, -870 +400],
+    r: 90,
+    a0: -90,
+    a1: 0,
+    dims: [24, 24],
+    steps: 12,
+    options: {
+      isStatic: true,
+      render: {
+        fillStyle: wallColorDark
+      }
+    }
+  });
+  M.World.add(engine.world, [arc1]);
+
+  //second arc - start - left
+  var arc2 = createArc({
+    pos: [150, -870 +400],
+    r: 90,
+    a0: -90,
+    a1: -180,
+    dims: [24, 24],
+    steps: 12,
+    options: {
+      isStatic: true,
+      render: {
+        fillStyle: wallColorDark
+      }
+    }
+  });
+  M.World.add(engine.world, [arc2]);
+
+  // top limit
+  createRect({
+    engine,
+    pos: [440, -961 +400],
+    dims: [580, 24],
+    angle: 0,
+    options: {
+      render: {
+        fillStyle: wallColorDark
+      }
+    }
+  });
+
+  // right plunger protector
+  createRect({
+    engine,
+    pos: [780, 440],
+    dims: [104, 24],
+    angle: 0,
+    options: {
+      render: {
+        fillStyle: wallColorDark
+      }
+    }
+  });
+
+
+  
+
+  // middle bottom
+
+
+
+  // middle middle main
+
+  createRect({
+    engine,
+    pos: [W * 0.5, H * 0.3 - 200],
+    dims: [80, 30],
+    angle: 0,
+    options: {
+      custom: "brick sfx|dest3",
+      render: {
+        fillStyle: tealishDestructible_1
+      }
+    }
+  });
+
+  createRect({
+    engine,
+    pos: [W * 0.5, H * 0.5 - 200],
+    dims: [80, 30],
+    angle: 0,
+    options: {
+      custom: "brick sfx|dest3",
+      render: {
+        fillStyle: tealishDestructible_1
+      }
+    }
+  });
+
+
+  createRect({
+    engine,
+    pos: [W * 0.5 - 100, H * 0.3 - 200],
+    dims: [80, 30],
+    angle: 0,
+    options: {
+      custom: "brick sfx|dest2",
+      render: {
+        fillStyle: tealishDestructible_3
+      }
+    }
+  });
+
+  createRect({
+    engine,
+    pos: [W * 0.5 - 100, H * 0.5 - 200],
+    dims: [80, 30],
+    angle: 0,
+    options: {
+      custom: "brick sfx|dest2",
+      render: {
+        fillStyle: tealishDestructible_3
+      }
+    }
+  });
+
+  createRect({
+    engine,
+    pos: [W * 0.5 + 100, H * 0.3 - 200],
+    dims: [80, 30],
+    angle: 0,
+    options: {
+      custom: "brick sfx|dest2",
+      render: {
+        fillStyle: tealishDestructible_3
+      }
+    }
+  });
+
+  createRect({
+    engine,
+    pos: [W * 0.5 + 100, H * 0.5 - 200],
+    dims: [80, 30],
+    angle: 0,
+    options: {
+      custom: "brick sfx|dest2",
+      render: {
+        fillStyle: tealishDestructible_3
+      }
+    }
+  });
+
+  createRotatingPolygon({
+    engine,
+    pos: [490 - 200 - 50, 150 - 400 - 100],
+    r: 75,
+    spinsPerSecond: 0.5,
+    sides: 6,
+    options: {
+      remainingBrickColors: [redDestructible_2, redDestructible_3],
+      custom: "brick sfx|dest2",
+      isStatic: true,
+      render: {
+        fillStyle: redDestructible_1
+      }
+    }
+  });
+
+  createRotatingPolygon({
+    engine,
+    pos: [490 + 20 + 50, 150 - 400 - 100],
+    r: 75,
+    spinsPerSecond: 0.5,
+    sides: 6,
+    options: {
+      remainingBrickColors: [redDestructible_2, redDestructible_3],
+      custom: "brick sfx|dest2",
+      isStatic: true,
+      render: {
+        fillStyle: redDestructible_1
+      }
+    }
+  });
+
+  createRotatingPolygon({
+    engine,
+    pos: [400, 150 - 400 + 75],
+    r: 75,
+    spinsPerSecond: 0.5,
+    sides: 6,
+    options: {
+      remainingBrickColors: [redDestructible_2, redDestructible_3],
+      custom: "brick sfx|dest2",
+      isStatic: true,
+      render: {
+        fillStyle: redDestructible_1
+      }
+    }
+  });
+
+
+  createRotatingPolygon({
+    engine,
+    pos: [400, 150 - 400 + 75 + 425],
+    r: 75,
+    spinsPerSecond: 0.5,
+    sides: 6,
+    options: {
+      remainingBrickColors: [redDestructible_2, redDestructible_3],
+      custom: "brick sfx|dest2",
+      isStatic: true,
+      render: {
+        fillStyle: redDestructible_1
+      }
+    }
+  });
+
+
+
+  createPlunger({
+    engine,
+    pos: [780, H * 0.5],
+    dims: [46, 32],
+    angle: 0,
+    options: {
+      render: {
+        fillStyle: plungerColor
+      }
+    }
+  });
+
+  // lower safety net attempt
+  createBumper({
+    engine,
+    pos: [W * 0.5, H * 1.1],
+    r: 12,
+    options: {
+      custom: "sfx|collision_1",
+      render: {
+        fillStyle: pinkish
+      }
+
+    }
+  });
+
+
+  // GOAL
+  createRotatingPolygon({
+    engine,
+    pos: [W * 0.5, H * 0.4 - 200],
+    r: 25,
+    spinsPerSecond: 1,
+    sides: 3,
+    options: {
+      isStatic: true,
+      custom: "goal brick",
+      render: {
+        fillStyle: goalColor
+      }
+    }
+  });
+
+  return {
+    spawnPos: [780, H * 0.2],
+    musicIndex: 1,
+    higher_h: -340000, //never play the highest
+    middle_h: -240, 
+    lower_h: H * 0.8
+  };
+});
+levelBuilders.push(function buildLevel(engine, W, H) {
+  var flipperColor = "#01579b"; //blue
+  var plungerColor = "#fdd835"; //yellow
+  var goalColor = "#76ff03"; //green
+  var triangleBumperColor = "#673ab7";//purple
+
+  var circularBumperColor = "#ffc046";//yellow
+
+  var wallColorDark = "#808e95"; //gray light
+
+  var orangeDestructible_1 = "#ff6f00";//orange dark
+  var orangeDestructible_2 = "#ffa000";//orange
+  var orangeDestructible_3 = "#ffca28";//orange light
+  var tealishDestructible_1 = "#004c40";//teal dark
+  var tealishDestructible_2 = "#00796b";//teal
+  var tealishDestructible_3 = "#48a999";//teal light
+  var pinkish = "#ec407a";//pink
+
+  var gatewayColor = "#b2ebf2";//teal
+
+  var boundsAreVisible = false;
+
+  // BOUNDS
+
+  var lowerBound = createRect({
+    engine,
+    pos: [W * 0.7, H * 1.6],
+    dims: [W * 4, 64],
+    angle: 0,
+    options: {
+      custom: "boundary",
+      render: {
+        visible: boundsAreVisible
+      }
+    }
+  });
+
+  var upperBound = createRect({
+    engine,
+    pos: [W * 0.7, -1500],
+    dims: [W * 4, 64],
+    angle: 0,
+    options: {
+      custom: "boundary",
+      render: {
+        visible: boundsAreVisible
+      }
+    }
+  });
+
+  var leftBound = createRect({
+    engine,
+    pos: [-1010, -273],
+    dims: [64, H * 4],
+    angle: 0,
+    options: {
+      custom: "boundary",
+      render: {
+        visible: boundsAreVisible
+      }
+    }
+  });
+
+  var rightBound = createRect({
+    engine,
+    pos: [2130, -273],
+    dims: [64, H * 4],
+    angle: 0,
+    options: {
+      custom: "boundary",
+      render: {
+        visible: boundsAreVisible
+      }
+    }
+  });
+
+
+  createBumper({
+    engine,
+    pos: [400, 300 - 700],
+    r: 32,
+    options: {
+      custom: "sfx|collision_3",
+      render: {
+        fillStyle: circularBumperColor
+      }
+    }
+  });
+
+
+  createBumper({
+    engine,
+    pos: [200, 300 - 400],
+    r: 32,
+    options: {
+      custom: "sfx|collision_3",
+      render: {
+        fillStyle: circularBumperColor
+      }
+    }
+  });
+
+  createBumper({
+    engine,
+    pos: [200 + 400, 300 - 400],
+    r: 32,
+    options: {
+      custom: "sfx|collision_3",
+      render: {
+        fillStyle: circularBumperColor
+      }
+    }
+  });
+
+  createTriangleBumper({
+    engine,
+    pos: [100, -150],
+    v0: [0, 0],
+    v1: [80, 80],
+    v2: [0, 160],
+    options: {
+      custom: "sfx|collision_2",
+      render: {
+        fillStyle: triangleBumperColor
+      }
+    }
+  });
+
+  createTriangleBumper({
+    engine,
+    pos: [100, 80],
+    v0: [0, 0],
+    v1: [80, 80],
+    v2: [0, 160],
+    options: {
+      custom: "sfx|collision_2",
+      render: {
+        fillStyle: triangleBumperColor
+      }
+    }
+  });
+
+  createTriangleBumper({
+    engine,
+    pos: [100, 300],
+    v0: [0, 0],
+    v1: [80, 80],
+    v2: [0, 160],
+    options: {
+      custom: "sfx|collision_2",
+      render: {
+        fillStyle: triangleBumperColor
+      }
+    }
+  });
+
+  //triangle left top
+  createTriangleBumper({
+    engine,
+    pos: [700, -150],
+    v0: [80, 0],
+    v1: [0, 80],
+    v2: [80, 160],
+    options: {
+      custom: "sfx|collision_2",
+      render: {
+        fillStyle: triangleBumperColor
+      }
+    }
+  });
+
+  //triangle left middle
+  createTriangleBumper({
+    engine,
+    pos: [700, 80],
+    v0: [80, 0],
+    v1: [0, 80],
+    v2: [80, 160],
+    options: {
+      custom: "sfx|collision_2",
+      render: {
+        fillStyle: triangleBumperColor
+      }
+    }
+  });
+
+  //triangle left bottom
+  createTriangleBumper({
+    engine,
+    pos: [700, 300],
+    v0: [80, 0],
+    v1: [0, 80],
+    v2: [80, 160],
+    options: {
+      custom: "sfx|collision_2",
+      render: {
+        fillStyle: triangleBumperColor
+      }
+    }
+  });
+
+
+  // bottom to top
+
+  //left flipper lower
+  createFlipper({
+    engine,
+    pos: [W / 2 - 100, H * 0.9],
+    dims: [128, 24],
+    nailRelPos: [-48, 0],
+    minAngle: 60,
+    key: KC_Z,
+    angVel: -0.3,
+    renderOptions: {
+      fillStyle: flipperColor
+    }
+  });
+
+  //right flipper lower
+  createFlipper({
+    engine,
+    pos: [W / 2 + 100, H * 0.9],
+    dims: [128, 24],
+    nailRelPos: [48, 0],
+    minAngle: 60,
+    key: KC_M,
+    angVel: 0.3,
+    renderOptions: {
+      fillStyle: flipperColor
+    }
+  });
+
+  // left rectangle - flipper to corner - lower
+  createRect({
+    engine,
+    pos: [W / 2 - 250, H * 0.8],
+    dims: [200, 24],
+    angle: 30,
+    options: {
+      render: {
+        fillStyle: wallColorDark
+      }
+    }
+  });
+
+  // right rectangle - flipper to corner - lower
+  createRect({
+    engine,
+    pos: [W / 2 + 250, H * 0.8],
+    dims: [200, 24],
+    angle: -30,
+    options: {
+      render: {
+        fillStyle: wallColorDark
+      }
+    }
+  });
+
+  // left pillar - 2 from flipper
+  createRect({
+    engine,
+    pos: [W / 2 - 340, -210 + 200],
+    dims: [1300-400, 24],
+    angle: 90,
+    options: {
+      render: {
+        fillStyle: wallColorDark
+      }
+    }
+  });
+
+  // right pillar ball tunel - 2 from flipper
+  createRect({
+    engine,
+    pos: [W / 2 + 340, -210 + 200],
+    dims: [1300-400, 24],
+    angle: 90,
+    options: {
+      render: {
+        fillStyle: wallColorDark
+      }
+    }
+  });
+
+  // rightmost pillar tunnel - start
+  createRect({
+    engine,
+    pos: [W / 2 + 420, -210 + 200],
+    dims: [1300-400, 24],
+    angle: 90,
+    options: {
+      render: {
+        fillStyle: wallColorDark
+      }
+    }
+  });
+
+  //first arc - start - right
+  var arc1 = createArc({
+    pos: [730, -870 +400],
+    r: 90,
+    a0: -90,
+    a1: 0,
+    dims: [24, 24],
+    steps: 12,
+    options: {
+      isStatic: true,
+      render: {
+        fillStyle: wallColorDark
+      }
+    }
+  });
+  M.World.add(engine.world, [arc1]);
+
+  //second arc - start - left
+  var arc2 = createArc({
+    pos: [150, -870 +400],
+    r: 90,
+    a0: -90,
+    a1: -180,
+    dims: [24, 24],
+    steps: 12,
+    options: {
+      isStatic: true,
+      render: {
+        fillStyle: wallColorDark
+      }
+    }
+  });
+  M.World.add(engine.world, [arc2]);
+
+  // top limit
+  createRect({
+    engine,
+    pos: [440, -961 +400],
+    dims: [580, 24],
+    angle: 0,
+    options: {
+      render: {
+        fillStyle: wallColorDark
+      }
+    }
+  });
+
+  // right plunger protector
+  createRect({
+    engine,
+    pos: [780, 440],
+    dims: [104, 24],
+    angle: 0,
+    options: {
+      render: {
+        fillStyle: wallColorDark
+      }
+    }
+  });
+
+
+
+  // middle top
+
+  createRect({
+    engine,
+    pos: [W * 0.5, H * 0.3 - 400],
+    dims: [80, 30],
+    angle: 0,
+    options: {
+      custom: "brick sfx|dest3",
+      render: {
+        fillStyle: tealishDestructible_1
+      }
+    }
+  });
+
+  createRect({
+    engine,
+    pos: [W * 0.5, H * 0.4 - 400],
+    dims: [80, 30],
+    angle: 0,
+    options: {
+      custom: "brick sfx|dest3",
+      render: {
+        fillStyle: tealishDestructible_2
+      }
+    }
+  });
+
+  createRect({
+    engine,
+    pos: [W * 0.5, H * 0.5 - 400],
+    dims: [80, 30],
+    angle: 0,
+    options: {
+      custom: "brick sfx|dest3",
+      render: {
+        fillStyle: tealishDestructible_1
+      }
+    }
+  });
+
+  // createBumper({
+  //   engine,
+  //   pos: [308, 150 - 400],
+  //   r: 12,
+  //   options: {
+  //     custom: "sfx|collision_1",
+  //     render: {
+  //       fillStyle: pinkish
+  //     }
+
+  //   }
+  // });
+
+  // createBumper({
+  //   engine,
+  //   pos: [490, 150 - 400],
+  //   r: 12,
+  //   options: {
+  //     custom: "sfx|collision_1",
+  //     render: {
+  //       fillStyle: pinkish
+  //     }
+
+  //   }
+  // });
+
+///
+  
+
+  // middle bottom
+
+  createRect({
+    engine,
+    pos: [W * 0.5, H * 0.3],
+    dims: [80, 30],
+    angle: 0,
+    options: {
+      custom: "brick sfx|dest3",
+      render: {
+        fillStyle: tealishDestructible_1
+      }
+    }
+  });
+
+  createRect({
+    engine,
+    pos: [W * 0.5, H * 0.4],
+    dims: [80, 30],
+    angle: 0,
+    options: {
+      custom: "brick sfx|dest3",
+      render: {
+        fillStyle: tealishDestructible_2
+      }
+    }
+  });
+
+  createRect({
+    engine,
+    pos: [W * 0.5, H * 0.5],
+    dims: [80, 30],
+    angle: 0,
+    options: {
+      custom: "brick sfx|dest3",
+      render: {
+        fillStyle: tealishDestructible_1
+      }
+    }
+  });
+
+  createBumper({
+    engine,
+    pos: [308, 150],
+    r: 12,
+    options: {
+      custom: "sfx|collision_1",
+      render: {
+        fillStyle: pinkish
+      }
+
+    }
+  });
+
+  createBumper({
+    engine,
+    pos: [490, 150],
+    r: 12,
+    options: {
+      custom: "sfx|collision_1",
+      render: {
+        fillStyle: pinkish
+      }
+
+    }
+  });
+
+  // left main
+
+  createRect({
+    engine,
+    pos: [W * 0.5 - 200, H * 0.3 - 200],
+    dims: [80, 30],
+    angle: 0,
+    options: {
+      custom: "brick sfx|dest3",
+      render: {
+        fillStyle: tealishDestructible_1
+      }
+    }
+  });
+
+  createRect({
+    engine,
+    pos: [W * 0.5 - 200, H * 0.4 - 200],
+    dims: [80, 30],
+    angle: 0,
+    options: {
+      custom: "brick sfx|dest3",
+      render: {
+        fillStyle: tealishDestructible_2
+      }
+    }
+  });
+
+  createRect({
+    engine,
+    pos: [W * 0.5 - 200, H * 0.5 - 200],
+    dims: [80, 30],
+    angle: 0,
+    options: {
+      custom: "brick sfx|dest3",
+      render: {
+        fillStyle: tealishDestructible_1
+      }
+    }
+  });
+
+  // createBumper({
+  //   engine,
+  //   pos: [308 - 200, 150 - 200],
+  //   r: 12,
+  //   options: {
+  //     custom: "sfx|collision_1",
+  //     render: {
+  //       fillStyle: pinkish
+  //     }
+
+  //   }
+  // });
+
+  createBumper({
+    engine,
+    pos: [490 - 200, 150 - 200],
+    r: 12,
+    options: {
+      custom: "sfx|collision_1",
+      render: {
+        fillStyle: pinkish
+      }
+
+    }
+  });
+
+  //////
+
+  // right main
+
+  createRect({
+    engine,
+    pos: [W * 0.5 + 200, H * 0.3 - 200],
+    dims: [80, 30],
+    angle: 0,
+    options: {
+      custom: "brick sfx|dest3",
+      render: {
+        fillStyle: tealishDestructible_1
+      }
+    }
+  });
+
+  createRect({
+    engine,
+    pos: [W * 0.5 + 200, H * 0.4 - 200],
+    dims: [80, 30],
+    angle: 0,
+    options: {
+      custom: "brick sfx|dest3",
+      render: {
+        fillStyle: tealishDestructible_2
+      }
+    }
+  });
+
+  createRect({
+    engine,
+    pos: [W * 0.5 + 200, H * 0.5 - 200],
+    dims: [80, 30],
+    angle: 0,
+    options: {
+      custom: "brick sfx|dest3",
+      render: {
+        fillStyle: tealishDestructible_1
+      }
+    }
+  });
+
+
+  createBumper({
+    engine,
+    pos: [308 + 200, 150 - 200],
+    r: 12,
+    options: {
+      custom: "sfx|collision_1",
+      render: {
+        fillStyle: pinkish
+      }
+
+    }
+  });
+
+  // createBumper({
+  //   engine,
+  //   pos: [490 + 200, 150 - 200],
+  //   r: 12,
+  //   options: {
+  //     custom: "sfx|collision_1",
+  //     render: {
+  //       fillStyle: pinkish
+  //     }
+
+  //   }
+  // });
+
+  //////
+
+  // middle middle main
+
+  createRect({
+    engine,
+    pos: [W * 0.5, H * 0.3 - 200],
+    dims: [80, 30],
+    angle: 0,
+    options: {
+      custom: "brick sfx|dest3",
+      render: {
+        fillStyle: tealishDestructible_1
+      }
+    }
+  });
+
+  // createRect({
+  //   engine,
+  //   pos: [W * 0.5, H * 0.4 - 200],
+  //   dims: [80, 30],
+  //   angle: 0,
+  //   options: {
+  //     custom: "brick sfx|dest3",
+  //     render: {
+  //       fillStyle: tealishDestructible_2
+  //     }
+  //   }
+  // });
+
+  createRect({
+    engine,
+    pos: [W * 0.5, H * 0.5 - 200],
+    dims: [80, 30],
+    angle: 0,
+    options: {
+      custom: "brick sfx|dest3",
+      render: {
+        fillStyle: tealishDestructible_1
+      }
+    }
+  });
+
+  //top bumpers
+
+
+   createBumper({
+    engine,
+    pos: [490 - 200, 150 - 400],
+    r: 12,
+    options: {
+      custom: "sfx|collision_1",
+      render: {
+        fillStyle: pinkish
+      }
+
+    }
+  });
+
+  createBumper({
+    engine,
+    pos: [490 + 20, 150 - 400],
+    r: 12,
+    options: {
+      custom: "sfx|collision_1",
+      render: {
+        fillStyle: pinkish
+      }
+
+    }
+  });
+
+
+
+  createPlunger({
+    engine,
+    pos: [780, H * 0.5],
+    dims: [46, 32],
+    angle: 0,
+    options: {
+      render: {
+        fillStyle: plungerColor
+      }
+    }
+  });
+
+  // createTriangleBumper({
+  //   engine,
+  //   pos: [150, -300],
+  //   v0: [-40, 30],
+  //   v1: [40, 30],
+  //   v2: [0, -30],
+  //   options: {
+  //     custom: "goal",
+  //     render: {
+  //       fillStyle: goalColor
+  //     }
+  //   }
+  // });
+
+  // lower safety net attempt
+  createBumper({
+    engine,
+    pos: [W * 0.5, H * 1.1],
+    r: 12,
+    options: {
+      custom: "sfx|collision_1",
+      render: {
+        fillStyle: pinkish
+      }
+
+    }
+  });
+
+
+  // GOAL
+  createRotatingPolygon({
+    engine,
+    pos: [W * 0.5, H * 0.4 - 200],
+    r: 25,
+    spinsPerSecond: 1,
+    sides: 3,
+    options: {
+      isStatic: true,
+      custom: "goal brick",
+      render: {
+        fillStyle: goalColor
+      }
+    }
+  });
+
+  return {
+    spawnPos: [780, H * 0.2],
+    musicIndex: 0,
+    higher_h: -340000, //never play the highest
+    middle_h: -240, 
+    lower_h: H * 0.8
+  };
+});
+levelBuilders.push(function buildLevel(engine, W, H) {
   var flipperColor = "#b71c1c"; //red
   var plungerColor = "#fdd835"; //yellow
   var goalColor = "#76ff03"; //green
   var triangleBumperColor = "#673ab7";//purple
+
+  var circularBumperColor = "#ffc046";//yellow
 
   var wallColorDark = "#808e95"; //gray light
 
@@ -540,14 +1846,24 @@ levelBuilders.push(function buildLevel(engine, W, H) {
     engine,
     pos: [200, 300],
     r: 32,
-    options: { custom: "sfx|collision_3" }
+    options: {
+      custom: "sfx|collision_3",
+      render: {
+        fillStyle: circularBumperColor
+      }
+    }
   });
 
   createBumper({
     engine,
     pos: [600, 300],
     r: 32,
-    options: { custom: "sfx|collision_3" }
+    options: {
+      custom: "sfx|collision_3",
+      render: {
+        fillStyle: circularBumperColor
+      }
+    }
   });
 
 
@@ -556,14 +1872,24 @@ levelBuilders.push(function buildLevel(engine, W, H) {
     engine,
     pos: [400, -650],
     r: 48,
-    options: { custom: "sfx|collision_3" }
+    options: {
+      custom: "sfx|collision_3",
+      render: {
+        fillStyle: circularBumperColor
+      }
+    }
   });
 
   createBumper({
     engine,
     pos: [400, -850],
     r: 48,
-    options: { custom: "sfx|collision_3" }
+    options: {
+      custom: "sfx|collision_3",
+      render: {
+        fillStyle: circularBumperColor
+      }
+    }
   });
 
 
@@ -790,6 +2116,7 @@ levelBuilders.push(function buildLevel(engine, W, H) {
   });
 
 
+  
 
   createRect({
     engine,
@@ -925,15 +2252,33 @@ levelBuilders.push(function buildLevel(engine, W, H) {
   };
 });
 levelBuilders.push(function buildLevel(engine, W, H) {
+  var flipperColor = "#b71c1c"; //red
+  var plungerColor = "#fdd835"; //yellow
+  var goalColor = "#76ff03"; //green
+  var triangleBumperColor = "#673ab7";//purple
 
-  var flipperColor = '#b71c1c';//red
-  var plungerColor = '#fdd835';//yellow
+  var circularBumperColor = "#ffc046";//yellow
 
-  var wallCollorDark = '#808e95';//gray light
+  var wallColorDark = "#808e95"; //gray light
 
-  var boundsAreVisible = true;
+  var orangeDestructible_1 = "#ff6f00";//orange dark
+  var orangeDestructible_2 = "#ffa000";//orange
+  var orangeDestructible_3 = "#ffca28";//orange light
+  var tealishDestructible_1 = "#004c40";//teal dark
+  var tealishDestructible_2 = "#00796b";//teal
+  var tealishDestructible_3 = "#48a999";//teal light
+  var pinkish = "#ec407a";//pink
 
-// bottom to top
+
+  var redDestructible_1 = "#a30000";//red dark
+  var redDestructible_2 = "#ff6434";//red
+  var redDestructible_3 = "#f48fb1";//red light
+
+  var gatewayColor = "#b2ebf2";//teal
+
+  var boundsAreVisible = false;
+
+  // bottom to top
 
   //left flipper lower
   createFlipper({
@@ -963,6 +2308,34 @@ levelBuilders.push(function buildLevel(engine, W, H) {
     }
   });
 
+  //left flipper middle
+  createFlipper({
+    engine,
+    pos: [W / 2 - 100, H * 0.1],
+    dims: [128, 24],
+    nailRelPos: [-48, 0],
+    minAngle: 60,
+    key: KC_Z,
+    angVel: -0.3,
+    renderOptions: {
+      fillStyle: flipperColor
+    }
+  });
+
+  //right flipper middle
+  createFlipper({
+    engine,
+    pos: [W / 2 + 100, H * 0.1],
+    dims: [128, 24],
+    nailRelPos: [48, 0],
+    minAngle: 60,
+    key: KC_M,
+    angVel: 0.3,
+    renderOptions: {
+      fillStyle: flipperColor
+    }
+  });
+
   // left rectangle - flipper to corner - lower
   createRect({
     engine,
@@ -971,7 +2344,7 @@ levelBuilders.push(function buildLevel(engine, W, H) {
     angle: 30,
     options: {
       render: {
-        fillStyle: wallCollorDark
+        fillStyle: wallColorDark
       }
     }
   });
@@ -984,7 +2357,7 @@ levelBuilders.push(function buildLevel(engine, W, H) {
     angle: -30,
     options: {
       render: {
-        fillStyle: wallCollorDark
+        fillStyle: wallColorDark
       }
     }
   });
@@ -997,48 +2370,165 @@ levelBuilders.push(function buildLevel(engine, W, H) {
     angle: 90,
     options: {
       render: {
-        fillStyle: wallCollorDark
+        fillStyle: wallColorDark
       }
     }
   });
+
+  // createRotatingPolygon({
+  //   engine,
+  //   pos: [200, -600],
+  //   r: 25,
+  //   spinsPerSecond: 0.5,
+  //   sides: 6,
+  //   options: {
+  //     remainingBrickColors: [goalColor, tealishDestructible],
+  //     custom: "brick",
+  //     isStatic: true,
+  //     render: {
+  //       fillStyle: orangeDestructible
+  //     }
+  //   }
+  // });
+
+
+  createRotatingPolygon({
+    engine,
+    pos: [470, -300],
+    r: 25,
+    spinsPerSecond: 0.5,
+    sides: 6,
+    options: {
+      remainingBrickColors: [orangeDestructible_2, orangeDestructible_3],
+      custom: "brick sfx|dest1",
+      isStatic: true,
+      render: {
+        fillStyle: orangeDestructible_1
+      }
+    }
+  });
+
+  createRotatingPolygon({
+    engine,
+    pos: [470, -200],
+    r: 25,
+    spinsPerSecond: 0.5,
+    sides: 6,
+    options: {
+      remainingBrickColors: [orangeDestructible_2, orangeDestructible_3],
+      custom: "brick sfx|dest1",
+      isStatic: true,
+      render: {
+        fillStyle: orangeDestructible_1
+      }
+    }
+  });
+
+
+  createRotatingPolygon({
+    engine,
+    pos: [450, -700],
+    r: 100,
+    spinsPerSecond: 0.5,
+    sides: 4,
+    options: {
+      remainingBrickColors: [redDestructible_2, redDestructible_3, tealishDestructible_1, tealishDestructible_2, tealishDestructible_3],
+      custom: "brick sfx|dest1",
+      isStatic: true,
+      render: {
+        fillStyle: redDestructible_1
+      }
+    }
+  });
+
+
+  // createRotatingPolygon({
+  //   engine,
+  //   pos: [100, -750],
+  //   r: 25,
+  //   spinsPerSecond: 0.5,
+  //   sides: 6,
+  //   options: {
+  //     remainingBrickColors: [orangeDestructible_2, orangeDestructible_3],
+  //     custom: "brick sfx|dest1",
+  //     isStatic: true,
+  //     render: {
+  //       fillStyle: orangeDestructible_1
+  //     }
+  //   }
+  // });
+
+  // createRotatingPolygon({
+  //   engine,
+  //   pos: [400, -400],
+  //   r: 25,
+  //   spinsPerSecond: 0.5,
+  //   sides: 6,
+  //   options: {
+  //     remainingBrickColors: [orangeDestructible_2, orangeDestructible_3],
+  //     custom: "brick sfx|dest1",
+  //     isStatic: true,
+  //     render: {
+  //       fillStyle: orangeDestructible_1
+  //     }
+  //   }
+  // });
+
+  // createRotatingPolygon({
+  //   engine,
+  //   pos: [704, -600],
+  //   r: 25,
+  //   spinsPerSecond: 0.5,
+  //   sides: 6,
+  //   options: {
+  //     remainingBrickColors: [orangeDestructible_2, orangeDestructible_3],
+  //     custom: "brick sfx|dest1",
+  //     isStatic: true,
+  //     render: {
+  //       fillStyle: orangeDestructible_1
+  //     }
+  //   }
+  // });
 
   // right pillar ball tunel - 2 from flipper
   createRect({
     engine,
-    pos: [W / 2 + 340, -210],
-    dims: [1300, 24],
+    pos: [W / 2 + 340, -210 + 400],
+    dims: [500, 24],
     angle: 90,
     options: {
       render: {
-        fillStyle: wallCollorDark
+        fillStyle: wallColorDark
       }
     }
   });
 
-  // ball tunnel - start
+  // rightmost pillar tunnel - start
   createRect({
     engine,
-    pos: [W / 2 + 270, -200],
-    dims: [1350, 24],
+    pos: [W / 2 + 420, -210],
+    dims: [1300, 24],
     angle: 90,
     options: {
       render: {
-        fillStyle: wallCollorDark
+        fillStyle: wallColorDark
       }
     }
   });
 
   //first arc - start - right
   var arc1 = createArc({
-    pos: [650, -870],
+    pos: [730, -870],
     r: 90,
     a0: -90,
     a1: 0,
     dims: [24, 24],
     steps: 12,
-    options: { isStatic: true, render: {
-      fillStyle: wallCollorDark
-    }
+    options: {
+      isStatic: true,
+      render: {
+        fillStyle: wallColorDark
+      }
     }
   });
   M.World.add(engine.world, [arc1]);
@@ -1051,9 +2541,11 @@ levelBuilders.push(function buildLevel(engine, W, H) {
     a1: -180,
     dims: [24, 24],
     steps: 12,
-    options: { isStatic: true, render: {
-      fillStyle: wallCollorDark
-    }
+    options: {
+      isStatic: true,
+      render: {
+        fillStyle: wallColorDark
+      }
     }
   });
   M.World.add(engine.world, [arc2]);
@@ -1061,12 +2553,25 @@ levelBuilders.push(function buildLevel(engine, W, H) {
   // top limit
   createRect({
     engine,
-    pos: [W / 2, -960],
-    dims: [500, 24],
+    pos: [440, -961],
+    dims: [580, 24],
     angle: 0,
     options: {
       render: {
-        fillStyle: wallCollorDark
+        fillStyle: wallColorDark
+      }
+    }
+  });
+
+  // right plunger protector
+  createRect({
+    engine,
+    pos: [780, 440],
+    dims: [104, 24],
+    angle: 0,
+    options: {
+      render: {
+        fillStyle: wallColorDark
       }
     }
   });
@@ -1079,7 +2584,7 @@ levelBuilders.push(function buildLevel(engine, W, H) {
     angle: 30,
     options: {
       render: {
-        fillStyle: wallCollorDark
+        fillStyle: wallColorDark
       }
     }
   });
@@ -1087,12 +2592,12 @@ levelBuilders.push(function buildLevel(engine, W, H) {
   // right rectangle - flipper to corner - upper
   createRect({
     engine,
-    pos: [W / 2 + 220, -380],
-    dims: [130, 24],
+    pos: [W / 2 + 210 + 150, -375],
+    dims: [110, 24],
     angle: -30,
     options: {
       render: {
-        fillStyle: wallCollorDark
+        fillStyle: wallColorDark
       }
     }
   });
@@ -1114,7 +2619,7 @@ levelBuilders.push(function buildLevel(engine, W, H) {
   //right flipper upper
   createFlipper({
     engine,
-    pos: [W / 2 + 100, -340],
+    pos: [W / 2 + 100 + 150, -340],
     dims: [128, 24],
     nailRelPos: [48, 0],
     minAngle: 60,
@@ -1125,31 +2630,138 @@ levelBuilders.push(function buildLevel(engine, W, H) {
     }
   });
 
-  // createBumper({
-  //   engine,
-  //   pos: [W * 0.7, H * 0.4],
-  //   r: 48,
-  //   options: { custom: "sfx|collision_3" }
-  // });
-  // createBumper({
-  //   engine,
-  //   pos: [W * 0.6, H * 0.55],
-  //   r: 32,
-  //   options: { custom: "sfx|collision_1" }
-  // });
-  // createBumper({
-  //   engine,
-  //   pos: [W * 0.25, H * 0.2],
-  //   r: 48,
-  //   options: { custom: "sfx|collision_3" }
-  // });
+  //bottom bumpers
+  createBumper({
+    engine,
+    pos: [200, 300],
+    r: 32,
+    options: {
+      custom: "sfx|collision_3",
+      render: {
+        fillStyle: circularBumperColor
+      }
+    }
+  });
 
-  // createBumper({
-  //   engine,
-  //   pos: [W * 0.5, H * 1.1],
-  //   r: 12,
-  //   options: { custom: "sfx|collision_1" }
-  // });
+  createBumper({
+    engine,
+    pos: [600, 300],
+    r: 32,
+    options: {
+      custom: "sfx|collision_3",
+      render: {
+        fillStyle: circularBumperColor
+      }
+    }
+  });
+
+  //top bumpers
+  createBumper({
+    engine,
+    pos: [200, 300-300],
+    r: 32,
+    options: {
+      custom: "sfx|collision_3",
+      render: {
+        fillStyle: circularBumperColor
+      }
+    }
+  });
+
+  createBumper({
+    engine,
+    pos: [600, 300-300],
+    r: 32,
+    options: {
+      custom: "sfx|collision_3",
+      render: {
+        fillStyle: circularBumperColor
+      }
+    }
+  });
+
+
+
+  // left gateway
+  createRect({
+    engine,
+    pos: [150, -50 - 600],
+    dims: [400-100, 12],
+    angle: 70,
+    options: {
+      custom: "sfx|metal",
+      render: {
+        fillStyle: gatewayColor
+      }
+    }
+  });
+
+  createRect({
+    engine,
+    pos: [230, -50 - 600],
+    dims: [400-100, 12],
+    angle: 70,
+    options: {
+      custom: "sfx|metal",
+      render: {
+        fillStyle: gatewayColor
+      }
+    }
+  });
+
+
+  // right gateway
+  createRect({
+    engine,
+    pos: [568 + 50, -600],
+    dims: [400-100, 12],
+    angle: -70,
+    options: {
+      custom: "sfx|metal",
+      render: {
+        fillStyle: gatewayColor
+      }
+    }
+  });
+
+  createRect({
+    engine,
+    pos: [648 + 50, -600],
+    dims: [400-100, 12],
+    angle: -70,
+    options: {
+      custom: "sfx|metal",
+      render: {
+        fillStyle: gatewayColor
+      }
+    }
+  });
+
+  // top left
+  createBumper({
+    engine,
+    pos: [250, -250 - 600],
+    r: 24,
+    options: {
+      custom: "sfx|collision_1",
+      render: {
+        fillStyle: pinkish
+      }
+    }
+  });
+
+  //top right
+  createBumper({
+    engine,
+    pos: [550, -250 - 600],
+    r: 24,
+    options: {
+      custom: "sfx|collision_1",
+      render: {
+        fillStyle: pinkish
+      }
+    }
+  });
 
   var lowerBound = createRect({
     engine,
@@ -1203,9 +2815,125 @@ levelBuilders.push(function buildLevel(engine, W, H) {
     }
   });
 
+
+
+  createRect({
+    engine,
+    pos: [W * 0.5, H * 0.3],
+    dims: [80, 30],
+    angle: 0,
+    options: {
+      custom: "brick sfx|dest3",
+      render: {
+        fillStyle: tealishDestructible_2
+      }
+    }
+  });
+
+  createRect({
+    engine,
+    pos: [W * 0.5, H * 0.4],
+    dims: [80, 30],
+    angle: 0,
+    options: {
+      custom: "brick sfx|dest3",
+      render: {
+        fillStyle: tealishDestructible_2
+      }
+    }
+  });
+
+  createRect({
+    engine,
+    pos: [W * 0.5, H * 0.5],
+    dims: [80, 30],
+    angle: 0,
+    options: {
+      custom: "brick sfx|dest3",
+      render: {
+        fillStyle: tealishDestructible_2
+      }
+    }
+  });
+
+
+  createBumper({
+    engine,
+    pos: [308, 150],
+    r: 12,
+    options: {
+      custom: "sfx|collision_1",
+      render: {
+        fillStyle: pinkish
+      }
+
+    }
+  });
+
+  createBumper({
+    engine,
+    pos: [490, 150],
+    r: 12,
+    options: {
+      custom: "sfx|collision_1",
+      render: {
+        fillStyle: pinkish
+      }
+
+    }
+  });
+
+
+
+
+  // //triangle right top
+  createTriangleBumper({
+    engine,
+    pos: [780, -160],
+    v0: [80, 0],
+    v1: [0, 80],
+    v2: [80, 160],
+    options: {
+      custom: "sfx|collision_2",
+      render: {
+        fillStyle: triangleBumperColor
+      }
+    }
+  });
+
+// //triangle left top
+createTriangleBumper({
+    engine,
+    pos: [100, -160],
+    v0: [0, 0],
+    v1: [80, 80],
+    v2: [0, 160],
+    options: {
+      custom: "sfx|collision_2",
+      render: {
+        fillStyle: triangleBumperColor
+      }
+    }
+  });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   createPlunger({
     engine,
-    pos: [W * 0.877, H * 0.5],
+    pos: [780, H * 0.5],
     dims: [46, 32],
     angle: 0,
     options: {
@@ -1217,17 +2945,49 @@ levelBuilders.push(function buildLevel(engine, W, H) {
 
   // createTriangleBumper({
   //   engine,
-  //   pos: [300, 250],
+  //   pos: [150, -300],
   //   v0: [-40, 30],
   //   v1: [40, 30],
   //   v2: [0, -30],
   //   options: {
-  //     custom: "goalxxxxx"
+  //     custom: "goal",
+  //     render: {
+  //       fillStyle: goalColor
+  //     }
   //   }
   // });
 
+  // lower safety net attempt
+  createBumper({
+    engine,
+    pos: [W * 0.5, H * 1.1],
+    r: 12,
+    options: {
+      custom: "sfx|collision_1",
+      render: {
+        fillStyle: pinkish
+      }
+
+    }
+  });
+
+  createRotatingPolygon({
+    engine,
+    pos: [110, -900],
+    r: 25,
+    spinsPerSecond: 1,
+    sides: 3,
+    options: {
+      isStatic: true,
+      custom: "goal brick",
+      render: {
+        fillStyle: goalColor
+      }
+    }
+  });
+
   return {
-    spawnPos: [W * 0.88, H * 0.2],
+    spawnPos: [780, H * 0.2],
     musicIndex: 1,
     higher_h: -340000, //never play the highest
     middle_h: -340, 
@@ -1562,9 +3322,9 @@ function createFlipper(ref) {
     var keyIsUpPressed = keyIsUp[key];
     var propagate_flipper = 0;
     if (invertAngles) {
-      propagate_flipper = propagate_key_up_left_flippers;
-    } else {
       propagate_flipper = propagate_key_up_right_flippers;
+    } else {
+      propagate_flipper = propagate_key_up_left_flippers;
     }
 
     var placeBackFlipper =
@@ -1575,15 +3335,15 @@ function createFlipper(ref) {
         keyIsUp[key] = false;
         is_key_up_master = true;
         if (invertAngles) {
-          propagate_key_up_left_flippers = number_of_left_flippers - 1;
-        } else {
           propagate_key_up_right_flippers = number_of_right_flippers - 1;
+        } else {
+          propagate_key_up_left_flippers = number_of_left_flippers - 1;
         }
       } else {
         if (invertAngles) {
-          propagate_key_up_left_flippers--;
-        } else {
           propagate_key_up_right_flippers--;
+        } else {
+          propagate_key_up_left_flippers--;
         }
       }
     }
@@ -1811,6 +3571,7 @@ function prepare() {
     sfx.win.stop();
     sfx.gameover.stop();
     won = false;
+    spareBalls = 3;
     beforeUpdateCbs = [];
     M.World.clear(engine.world);
     M.Engine.clear(engine);
