@@ -426,6 +426,7 @@ levelBuilders.push(function buildLevel(engine, W, H) {
     dims: [400, 12],
     angle: 70,
     options: {
+      custom: "sfx|metal",
       render: {
         fillStyle: gatewayColor
       }
@@ -438,6 +439,7 @@ levelBuilders.push(function buildLevel(engine, W, H) {
     dims: [400, 12],
     angle: 70,
     options: {
+      custom: "sfx|metal",
       render: {
         fillStyle: gatewayColor
       }
@@ -452,6 +454,7 @@ levelBuilders.push(function buildLevel(engine, W, H) {
     dims: [400, 12],
     angle: -70,
     options: {
+      custom: "sfx|metal",
       render: {
         fillStyle: gatewayColor
       }
@@ -464,6 +467,7 @@ levelBuilders.push(function buildLevel(engine, W, H) {
     dims: [400, 12],
     angle: -70,
     options: {
+      custom: "sfx|metal",
       render: {
         fillStyle: gatewayColor
       }
@@ -571,7 +575,7 @@ levelBuilders.push(function buildLevel(engine, W, H) {
     options: {
       custom: "brick sfx|dest3",
       render: {
-        fillStyle: tealishDestructible_3
+        fillStyle: tealishDestructible_2
       }
     }
   });
@@ -584,7 +588,7 @@ levelBuilders.push(function buildLevel(engine, W, H) {
     options: {
       custom: "brick sfx|dest3",
       render: {
-        fillStyle: tealishDestructible_3
+        fillStyle: tealishDestructible_2
       }
     }
   });
@@ -597,7 +601,7 @@ levelBuilders.push(function buildLevel(engine, W, H) {
     options: {
       custom: "brick sfx|dest3",
       render: {
-        fillStyle: tealishDestructible_3
+        fillStyle: tealishDestructible_2
       }
     }
   });

@@ -496,7 +496,8 @@ function prepare() {
     extraBalls = 6;
     needsNewBall = false;
     startNextLevel();
-    displaySpecialMessage("INSERTED COIN");
+    soundEnabled && sfx.dingding.play();
+    displaySpecialMessage("   O -> INSERTED COIN <- O");
   }
   window.restart = restart;
 
@@ -521,7 +522,7 @@ function prepare() {
           addBall();
         } else if (spareBalls === 0) {
           // no more, SPAM the MOFO
-          displaySpecialMessage("LOOKS LIKE YOU NEED BALLS...");
+          displaySpecialMessage("OO LOOKS LIKE YOU NEED BALLS OO");
           soundEnabled && sfx.manyballs.play();
           for (let i = 0; i < extraBalls; ++i) {
             addBall();
