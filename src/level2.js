@@ -20,7 +20,20 @@ levelBuilders.push(function buildLevel(engine, W, H) {
     options: {
       custom: "boundary",
       render: {
-        fillStyle: "red"
+        fillStyle: "gray"
+      }
+    }
+  });
+
+  createRect({
+    engine,
+    pos: [W * 0.5, H * 0.1],
+    dims: [600, 12],
+    angle: 0,
+    options: {
+      custom: "boundary",
+      render: {
+        fillStyle: "gray"
       }
     }
   });
@@ -33,7 +46,7 @@ levelBuilders.push(function buildLevel(engine, W, H) {
     options: {
       custom: "boundary",
       render: {
-        fillStyle: "red"
+        fillStyle: "gray"
       }
     }
   });
@@ -46,14 +59,14 @@ levelBuilders.push(function buildLevel(engine, W, H) {
     options: {
       custom: "boundary",
       render: {
-        fillStyle: "red"
+        fillStyle: "gray"
       }
     }
   });
 
   createRect({
     engine,
-    pos: [W * 0.5, H * 0.3],
+    pos: [W * 0.5, H * 0.4],
     dims: [120, 30],
     angle: 0,
     options: {
@@ -65,14 +78,39 @@ levelBuilders.push(function buildLevel(engine, W, H) {
     }
   });
 
+  let left = 2;
+  function onCompositeBrick() {
+    --left;
+    //console.log(left);
+    if (left === 0) {
+      win();
+    }
+  }
+
   createRect({
     engine,
-    pos: [W * 0.5, H * 0.9],
-    dims: [600, 12],
+    pos: [W * 0.45, H * 0.3],
+    dims: [60, 30],
     angle: 0,
     options: {
+      custom: "brick sfx|collision_3",
+      brickDone: onCompositeBrick,
       render: {
-        fillStyle: "red"
+        fillStyle: "cyan"
+      }
+    }
+  });
+
+  createRect({
+    engine,
+    pos: [W * 0.55, H * 0.3],
+    dims: [60, 30],
+    angle: 0,
+    options: {
+      custom: "brick sfx|collision_3",
+      brickDone: onCompositeBrick,
+      render: {
+        fillStyle: "cyan"
       }
     }
   });

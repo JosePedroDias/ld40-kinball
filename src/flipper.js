@@ -629,20 +629,25 @@ function prepare() {
     M.World.remove(engine.world, ball);
   }
 
+  function win() {
+    won = true;
+    displaySpecialMessage("LEVEL UP!", () => {
+      displaySpecialMessage("+1000 POINTS");
+      score += 1000;
+    });
+    ballsOnScreen.forEach(b => ballsToRemove.push(b));
+
+    setMusic(false);
+    soundEnabled && sfx.win.play();
+  }
+  window.win = win;
+
   function onCustom(_custom, body, otherBody) {
     console.log("custom: %s", _custom);
 
     _custom.split(" ").forEach(custom => {
       if (custom === "goal") {
-        won = true;
-        displaySpecialMessage("LEVEL UP!", () => {
-          displaySpecialMessage("+1000 POINTS");
-          score += 1000;
-        });
-        ballsOnScreen.forEach(b => ballsToRemove.push(b));
-
-        setMusic(false);
-        soundEnabled && sfx.win.play();
+        win();
       } else if (custom === "boundary") {
         ballsToRemove.push(otherBody);
         needsNewBall = true;
@@ -650,12 +655,16 @@ function prepare() {
         const sample = custom.split("|")[1];
         soundEnabled && sfx[sample].play();
       } else if (custom === "brick") {
-        const nextColor = body.remainingBrickColors.shift();
-        //debugger;
+        // to make it without multiple colors
+        const nextColor =
+          body.remainingBrickColors && body.remainingBrickColors.shift();
         if (nextColor) {
           body.render.fillStyle = nextColor;
         } else {
           ballsToRemove.push(body);
+          if ("brickDone" in body) {
+            body.brickDone(body);
+          }
         }
       }
     });
