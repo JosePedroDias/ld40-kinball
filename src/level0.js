@@ -1,14 +1,13 @@
 levelBuilders.push(function buildLevel(engine, W, H) {
+  const flipperColor = "#b71c1c"; //red
+  const plungerColor = "#fdd835"; //yellow
+  const goalColor = "#76ff03"; //green
 
-  const flipperColor = '#b71c1c';//red
-  const plungerColor = '#fdd835';//yellow
-  const goalColor = '#76ff03';//green
-
-  const wallCollorDark = '#808e95';//gray light
+  const wallCollorDark = "#808e95"; //gray light
 
   const boundsAreVisible = true;
 
-// bottom to top
+  // bottom to top
 
   //left flipper lower
   createFlipper({
@@ -77,6 +76,19 @@ levelBuilders.push(function buildLevel(engine, W, H) {
     }
   });
 
+  createRotatingPolygon({
+    engine,
+    pos: [W * 0.4, H * 0.4],
+    r: 100,
+    spinsPerSecond: 0.5,
+    sides: 6,
+    options: {
+      render: {
+        fillStyle: "yellow"
+      }
+    }
+  });
+
   // right pillar ball tunel - 2 from flipper
   createRect({
     engine,
@@ -111,9 +123,11 @@ levelBuilders.push(function buildLevel(engine, W, H) {
     a1: 0,
     dims: [24, 24],
     steps: 12,
-    options: { isStatic: true, render: {
-      fillStyle: wallCollorDark
-    }
+    options: {
+      isStatic: true,
+      render: {
+        fillStyle: wallCollorDark
+      }
     }
   });
   M.World.add(engine.world, [arc1]);
@@ -126,9 +140,11 @@ levelBuilders.push(function buildLevel(engine, W, H) {
     a1: -180,
     dims: [24, 24],
     steps: 12,
-    options: { isStatic: true, render: {
-      fillStyle: wallCollorDark
-    }
+    options: {
+      isStatic: true,
+      render: {
+        fillStyle: wallCollorDark
+      }
     }
   });
   M.World.add(engine.world, [arc2]);

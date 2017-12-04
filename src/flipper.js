@@ -210,14 +210,19 @@ function createFlipperShape({ pos, ra, rb, length, options }) {
   const pa = [pos[0] - length / 2, pos[1]];
   const pb = [pos[0] + length / 2, pos[1]];
 
-  const circleA = M.Bodies.circle(pa[0], pa[1], ra, {render: options.render});
-  const circleB = M.Bodies.circle(pb[0], pb[1], rb, {render: options.render});
-  const poly = M.Bodies.fromVertices(pos[0], pos[1], [
-    { x: pa[0], y: pa[1] - ra },
-    { x: pa[0], y: pa[1] + ra },
-    { x: pb[0], y: pb[1] + rb },
-    { x: pb[0], y: pb[1] - rb }
-  ], {render: options.render});
+  const circleA = M.Bodies.circle(pa[0], pa[1], ra, { render: options.render });
+  const circleB = M.Bodies.circle(pb[0], pb[1], rb, { render: options.render });
+  const poly = M.Bodies.fromVertices(
+    pos[0],
+    pos[1],
+    [
+      { x: pa[0], y: pa[1] - ra },
+      { x: pa[0], y: pa[1] + ra },
+      { x: pb[0], y: pb[1] + rb },
+      { x: pb[0], y: pb[1] - rb }
+    ],
+    { render: options.render }
+  );
 
   return M.Body.create({ parts: [circleA, circleB, poly] }, options);
 }
@@ -236,7 +241,7 @@ function createFlipper({
 
   const invertAngles = nailRelPos[0] > 0;
 
-  if (invertAngles){
+  if (invertAngles) {
     number_of_right_flippers++;
   } else {
     number_of_left_flippers++;
@@ -280,25 +285,26 @@ function createFlipper({
     const rotateFlipper = keyIsDown[key];
     const keyIsUpPressed = keyIsUp[key];
     let propagate_flipper = 0;
-    if (invertAngles){
+    if (invertAngles) {
       propagate_flipper = propagate_key_up_left_flippers;
     } else {
       propagate_flipper = propagate_key_up_right_flippers;
     }
 
-    const placeBackFlipper = keyIsUpPressed || (propagate_flipper > 0 && !is_key_up_master);
+    const placeBackFlipper =
+      keyIsUpPressed || (propagate_flipper > 0 && !is_key_up_master);
     if (placeBackFlipper) {
       wentDownF = getTime() + 100;
-      if (keyIsUpPressed){
+      if (keyIsUpPressed) {
         keyIsUp[key] = false;
         is_key_up_master = true;
-        if (invertAngles){
+        if (invertAngles) {
           propagate_key_up_left_flippers = number_of_left_flippers - 1;
         } else {
           propagate_key_up_right_flippers = number_of_right_flippers - 1;
         }
       } else {
-        if (invertAngles){
+        if (invertAngles) {
           propagate_key_up_left_flippers--;
         } else {
           propagate_key_up_right_flippers--;
@@ -338,6 +344,15 @@ function createRect({ engine, pos, dims, angle, options }) {
   M.World.add(engine.world, [rectangle]);
 
   return rectangle;
+}
+
+function createRotatingPolygon({ engine, pos, r, sides, spinsPerSecond }) {
+  const poly = M.Bodies.polygon(pos[0], pos[1], sides, r, { isStatic: true });
+  const dAngle = spinsPerSecond * 360 * DEG2RAD / 60;
+  beforeUpdateCbs.push(() => {
+    M.Body.setAngle(poly, poly.angle + dAngle);
+  });
+  M.World.add(engine.world, [poly]);
 }
 
 function createPlunger({ engine, pos, dims, angle, options }) {
