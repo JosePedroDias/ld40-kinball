@@ -47,6 +47,25 @@ function displaySpecialMessage(msg, onDone) {
   }, 150);
 }
 
+function increase_brightness(hex, percent){
+    // strip the leading # if it's there
+    hex = hex.replace(/^\s*#|\s*$/g, '');
+
+    // convert 3 char codes --> 6, e.g. `E0F` --> `EE00FF`
+    if(hex.length == 3){
+        hex = hex.replace(/(.)/g, '$1$1');
+    }
+
+    var r = parseInt(hex.substr(0, 2), 16),
+        g = parseInt(hex.substr(2, 2), 16),
+        b = parseInt(hex.substr(4, 2), 16);
+
+    return '#' +
+       ((0|(1<<8) + r + (256 - r) * percent / 100).toString(16)).substr(1) +
+       ((0|(1<<8) + g + (256 - g) * percent / 100).toString(16)).substr(1) +
+       ((0|(1<<8) + b + (256 - b) * percent / 100).toString(16)).substr(1);
+}
+
 function getTime() {
   return new Date().valueOf();
 }
@@ -713,11 +732,36 @@ function prepare() {
       ++score;
       //soundEnabled && sfx.collision_1.play();
 
+      // all the bodies who have sound will restore to their original colors on collision end
+      if (bodyA.custom && bodyA.custom.indexOf('sfx|') !== -1 && bodyA.render && bodyA.render.oldFillStyle){
+        bodyA.render.fillStyle = bodyA.render.oldFillStyle;
+        bodyA.render.oldFillStyle = undefined;
+      }
+      if (bodyB.custom && bodyB.custom.indexOf('sfx|') !== -1 && bodyB.render && bodyB.render.oldFillStyle){
+        bodyB.render.fillStyle = bodyB.render.oldFillStyle;
+        bodyA.render.oldFillStyle = undefined;
+      }
+
       if (bodyA.custom) {
         onCustom(bodyA.custom, bodyA, bodyB);
       }
       if (bodyB.custom) {
         onCustom(bodyB.custom, bodyB, bodyA);
+      }
+      
+    });
+  });
+
+  M.Events.on(engine, "collisionStart", ev => {
+    ev.pairs.forEach(({ bodyA, bodyB }) => {
+      // all the bodies who have sound will have increased brightness during the collision
+      if (bodyA.custom && bodyA.custom.indexOf('sfx|') !== -1 && bodyA.render && bodyA.render.fillStyle && bodyA.render.oldFillStyle === undefined){
+        bodyA.render.oldFillStyle = bodyA.render.fillStyle;
+        bodyA.render.fillStyle = increase_brightness(bodyA.render.fillStyle, 25);
+      }
+      if (bodyB.custom && bodyB.custom.indexOf('sfx|') !== -1 && bodyB.render && bodyB.render.fillStyle && bodyB.render.oldFillStyle === undefined){
+        bodyB.render.oldFillStyle = bodyB.render.fillStyle;
+        bodyB.render.fillStyle = increase_brightness(bodyB.render.fillStyle, 25);
       }
     });
   });
