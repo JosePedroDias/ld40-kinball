@@ -764,9 +764,9 @@ levelBuilders.push(function buildLevel(engine, W, H) {
 
   return {
     spawnPos: [780, H * 0.2],
-    musicIndex: 1,
+    musicIndex: 0,
     higher_h: -340000, //never play the highest
-    middle_h: -340, 
+    middle_h: -240, 
     lower_h: H * 0.8
   };
 });
