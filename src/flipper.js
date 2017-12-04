@@ -8,7 +8,7 @@ const RAD2DEG = 180 / Math.PI;
 
 let currentLevel = 0;
 let score = 0;
-let spareBalls = 1;
+let spareBalls = 3;
 let extraBalls = 6;
 let blinkUntil = 0;
 let won = false;
@@ -629,25 +629,36 @@ function prepare() {
     M.World.remove(engine.world, ball);
   }
 
-  function onCustom(custom, body, otherBody) {
-    console.log("custom: %s", body.custom);
-    if (custom === "goal") {
-      won = true;
-      displaySpecialMessage("LEVEL UP!", () => {
-        displaySpecialMessage("+1000 POINTS");
-        score += 1000;
-      });
-      ballsOnScreen.forEach(b => ballsToRemove.push(b));
+  function onCustom(_custom, body, otherBody) {
+    console.log("custom: %s", _custom);
 
-      setMusic(false);
-      soundEnabled && sfx.win.play();
-    } else if (custom === "boundary") {
-      ballsToRemove.push(otherBody);
-      needsNewBall = true;
-    } else if (custom.indexOf("sfx|") === 0) {
-      const sample = custom.split("|")[1];
-      soundEnabled && sfx[sample].play();
-    }
+    _custom.split(" ").forEach(custom => {
+      if (custom === "goal") {
+        won = true;
+        displaySpecialMessage("LEVEL UP!", () => {
+          displaySpecialMessage("+1000 POINTS");
+          score += 1000;
+        });
+        ballsOnScreen.forEach(b => ballsToRemove.push(b));
+
+        setMusic(false);
+        soundEnabled && sfx.win.play();
+      } else if (custom === "boundary") {
+        ballsToRemove.push(otherBody);
+        needsNewBall = true;
+      } else if (custom.indexOf("sfx|") === 0) {
+        const sample = custom.split("|")[1];
+        soundEnabled && sfx[sample].play();
+      } else if (custom === "brick") {
+        const nextColor = body.remainingBrickColors.shift();
+        //debugger;
+        if (nextColor) {
+          body.render.fillStyle = nextColor;
+        } else {
+          ballsToRemove.push(body);
+        }
+      }
+    });
   }
 
   M.Events.on(engine, "collisionEnd", ev => {
