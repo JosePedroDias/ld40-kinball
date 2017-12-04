@@ -626,6 +626,7 @@ function prepare() {
       //apply_tilt = false; // disable shake cam
       if (apply_tilt) {
         //console.log('Applying tilt');
+        displaySpecialMessage("=============== TILT ===============");
         tilt_offset_x = getRandomInt(-10, 10);
         tilt_offset_y = getRandomInt(-10, 10);
         buffer = [];
@@ -678,7 +679,7 @@ function prepare() {
   window.win = win;
 
   function onCustom(_custom, body, otherBody) {
-    console.log("custom: %s", _custom);
+    //console.log("custom: %s", _custom);
 
     _custom.split(" ").forEach(custom => {
       if (custom === "goal") {
