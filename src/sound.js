@@ -9,7 +9,7 @@ function addSfx(name) {
 }
 
 window.audioMap = {
-  sfx: "ball_out collision_1 collision_3 flipper gameover win".split(" ")
+  sfx: "ball_out get_ready try_again levelup_good_job collision_1 collision_2 collision_3 flipper gameover gameover_voice manyballs dingding win dest1 dest2 dest3".split(" ")
 };
 
 window.audioMap.sfx.forEach(addSfx);

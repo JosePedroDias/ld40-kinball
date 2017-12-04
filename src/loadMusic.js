@@ -148,6 +148,11 @@
     }
   }
 
+  function isMusicPlaying(){
+    return music_parts && music_parts.playing();
+  }
+
   global.loadMusic = loadMusic;
   global.setMusic = setMusic;
+  global.isMusicPlaying = isMusicPlaying;
 })(this);

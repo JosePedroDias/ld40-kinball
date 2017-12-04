@@ -516,17 +516,23 @@ function prepare() {
         --spareBalls;
         if (spareBalls > 0) {
           // still have extra balls
+          soundEnabled && sfx.try_again.play();
+          
           addBall();
         } else if (spareBalls === 0) {
           // no more, SPAM the MOFO
           displaySpecialMessage("LOOKS LIKE YOU NEED BALLS...");
+          soundEnabled && sfx.manyballs.play();
           for (let i = 0; i < extraBalls; ++i) {
             addBall();
           }
         } else if (ballsOnScreen.length === 0) {
           // game over
           setMusic(false);
-          soundEnabled && sfx.gameover.play();
+          soundEnabled && sfx.gameover_voice.play();
+          soundEnabled && setTimeout(function() {
+            soundEnabled && sfx.gameover.play();
+          }, 1000);
           if (score > highScore) {
             highScore = score;
             saveLS("score", highScore);
@@ -566,7 +572,12 @@ function prepare() {
       //console.log('no balls');
       return 0;
     });
-    setMusic(soundEnabled);
+    soundEnabled && sfx.get_ready.play();
+    soundEnabled && setTimeout(function() {
+      // avoid double play if player activated the sound in this time
+      !isMusicPlaying() && setMusic(soundEnabled);
+    }, 1500);
+    
 
     ++currentLevel;
     if (currentLevel > levelBuilders.length) {
@@ -652,13 +663,16 @@ function prepare() {
 
   function win() {
     won = true;
+    soundEnabled && sfx.dingding.play();
     displaySpecialMessage("LEVEL UP!", () => {
+      soundEnabled && sfx.dingding.play();
       displaySpecialMessage("+1000 POINTS");
       score += 1000;
     });
     ballsOnScreen.forEach(b => ballsToRemove.push(b));
 
     setMusic(false);
+    soundEnabled && sfx.levelup_good_job.play();
     soundEnabled && sfx.win.play();
   }
   window.win = win;

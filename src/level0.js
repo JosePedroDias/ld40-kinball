@@ -112,7 +112,7 @@ levelBuilders.push(function buildLevel(engine, W, H) {
     sides: 6,
     options: {
       remainingBrickColors: [orangeDestructible_2, orangeDestructible_3],
-      custom: "brick",
+      custom: "brick sfx|dest1",
       isStatic: true,
       render: {
         fillStyle: orangeDestructible_1
@@ -129,7 +129,7 @@ levelBuilders.push(function buildLevel(engine, W, H) {
     sides: 6,
     options: {
       remainingBrickColors: [orangeDestructible_2, orangeDestructible_3],
-      custom: "brick",
+      custom: "brick sfx|dest1",
       isStatic: true,
       render: {
         fillStyle: orangeDestructible_1
@@ -145,7 +145,7 @@ levelBuilders.push(function buildLevel(engine, W, H) {
     sides: 6,
     options: {
       remainingBrickColors: [orangeDestructible_2, orangeDestructible_3],
-      custom: "brick",
+      custom: "brick sfx|dest1",
       isStatic: true,
       render: {
         fillStyle: orangeDestructible_1
@@ -161,7 +161,7 @@ levelBuilders.push(function buildLevel(engine, W, H) {
     sides: 6,
     options: {
       remainingBrickColors: [orangeDestructible_2, orangeDestructible_3],
-      custom: "brick",
+      custom: "brick sfx|dest1",
       isStatic: true,
       render: {
         fillStyle: orangeDestructible_1
@@ -272,7 +272,7 @@ levelBuilders.push(function buildLevel(engine, W, H) {
   createRect({
     engine,
     pos: [W / 2 + 210, -375],
-    dims: [100, 24],
+    dims: [110, 24],
     angle: -30,
     options: {
       render: {
@@ -351,6 +351,7 @@ levelBuilders.push(function buildLevel(engine, W, H) {
     v1: [80, 80],
     v2: [0, 160],
     options: {
+      custom: "sfx|collision_2",
       render: {
         fillStyle: triangleBumperColor
       }
@@ -365,6 +366,7 @@ levelBuilders.push(function buildLevel(engine, W, H) {
     v1: [80, 80],
     v2: [0, 160],
     options: {
+      custom: "sfx|collision_2",
       render: {
         fillStyle: triangleBumperColor
       }
@@ -379,6 +381,7 @@ levelBuilders.push(function buildLevel(engine, W, H) {
     v1: [0, 80],
     v2: [80, 160],
     options: {
+      custom: "sfx|collision_2",
       render: {
         fillStyle: triangleBumperColor
       }
@@ -394,6 +397,7 @@ levelBuilders.push(function buildLevel(engine, W, H) {
     v1: [0, 80],
     v2: [80, 160],
     options: {
+      custom: "sfx|collision_2",
       render: {
         fillStyle: triangleBumperColor
       }
@@ -408,6 +412,7 @@ levelBuilders.push(function buildLevel(engine, W, H) {
     v1: [0, 50],
     v2: [30, 100],
     options: {
+      custom: "sfx|collision_2",
       render: {
         fillStyle: triangleBumperColor
       }
@@ -564,7 +569,7 @@ levelBuilders.push(function buildLevel(engine, W, H) {
     dims: [80, 30],
     angle: 0,
     options: {
-      custom: "brick sfx|collision_1",
+      custom: "brick sfx|dest3",
       render: {
         fillStyle: tealishDestructible_3
       }
@@ -577,7 +582,7 @@ levelBuilders.push(function buildLevel(engine, W, H) {
     dims: [80, 30],
     angle: 0,
     options: {
-      custom: "brick sfx|collision_1",
+      custom: "brick sfx|dest3",
       render: {
         fillStyle: tealishDestructible_3
       }
@@ -590,7 +595,7 @@ levelBuilders.push(function buildLevel(engine, W, H) {
     dims: [80, 30],
     angle: 0,
     options: {
-      custom: "brick sfx|collision_1",
+      custom: "brick sfx|dest3",
       render: {
         fillStyle: tealishDestructible_3
       }
