@@ -305,9 +305,9 @@ function createFlipper({
     const keyIsUpPressed = keyIsUp[key];
     let propagate_flipper = 0;
     if (invertAngles) {
-      propagate_flipper = propagate_key_up_left_flippers;
-    } else {
       propagate_flipper = propagate_key_up_right_flippers;
+    } else {
+      propagate_flipper = propagate_key_up_left_flippers;
     }
 
     const placeBackFlipper =
@@ -318,15 +318,15 @@ function createFlipper({
         keyIsUp[key] = false;
         is_key_up_master = true;
         if (invertAngles) {
-          propagate_key_up_left_flippers = number_of_left_flippers - 1;
-        } else {
           propagate_key_up_right_flippers = number_of_right_flippers - 1;
+        } else {
+          propagate_key_up_left_flippers = number_of_left_flippers - 1;
         }
       } else {
         if (invertAngles) {
-          propagate_key_up_left_flippers--;
-        } else {
           propagate_key_up_right_flippers--;
+        } else {
+          propagate_key_up_left_flippers--;
         }
       }
     }
