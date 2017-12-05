@@ -567,6 +567,14 @@ function prepare() {
     number_of_right_flippers = 0;
     propagate_key_up_right_flippers = 0;
     propagate_key_up_left_flippers = 0;
+
+    // SAFER WAY TO RESTART... OR DO SOMETHING ELSE?
+    if (currentLevel >= levelBuilders.length){
+      displaySpecialMessage("OO !!!!!CONTRATULATIONS!!!!!! OO");
+      currentLevel = 0;
+    }
+
+
     levelConfig = levelBuilders[currentLevel](engine, W, H);
     spawnPos = levelConfig.spawnPos;
 
@@ -602,9 +610,6 @@ function prepare() {
 
 
     ++currentLevel;
-    if (currentLevel > levelBuilders.length) {
-      currentLevel = 0;
-    }
   }
   window.startNextLevel = startNextLevel;
 
