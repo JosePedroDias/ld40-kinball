@@ -2,20 +2,15 @@
 
 Entry by @jose_pedro_dias and @asilva4000
 
-## TODO
+A pinball game with physics.
 
-### features
+Keys are:
 
-### content:
-
-* create level(s)
-* tweak visuals (hide aux bodies, change colors?)
-
-### publishing:
-
-* create screenshot
-* create video
-* write instructions and supported platforms
+* Z - left flipper
+* M - right flipper
+* down - launch ball with plunger
+* T - tilt table
+(should run on greenfield desktop browsers. Chrome and Firefox run index.html while Edge and Safari run only in index-compat.html)ear publish we should tackle compatibility)
 
 ## External Credits
 

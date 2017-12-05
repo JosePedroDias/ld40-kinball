@@ -123,11 +123,12 @@ function p(arr) {
 const YELLOW = "#DD2";
 const DARK_GRAY = "#333";
 
-const KC_Z = 90;
+
 const KC_M = 77;
 const KC_R = 82;
 const KC_S = 83;
 const KC_T = 84;
+const KC_Z = 90;
 const KC_SPACE = 32;
 const KC_LEFT = 37;
 const KC_RIGHT = 39;
@@ -498,7 +499,6 @@ function prepare() {
       //showAngleIndicator: true
     }
   });
-
   engine.world.gravity.y = 0.4;
 
   M.Events.on(engine, "beforeUpdate", function() {
@@ -539,7 +539,7 @@ function prepare() {
           // still have extra balls
           displaySpecialMessage("       TRY AGAIN   O x " + spareBalls);
           soundEnabled && sfx.try_again.play();
-          
+
           addBall();
         } else if (spareBalls === 0) {
           // no more, SPAM the MOFO
@@ -599,7 +599,7 @@ function prepare() {
       // avoid double play if player activated the sound in this time
       !isMusicPlaying() && setMusic(soundEnabled);
     }, 1500);
-    
+
 
     ++currentLevel;
     if (currentLevel > levelBuilders.length) {
@@ -750,7 +750,7 @@ function prepare() {
       if (bodyB.custom) {
         onCustom(bodyB.custom, bodyB, bodyA);
       }
-      
+
     });
   });
 
@@ -768,38 +768,31 @@ function prepare() {
     });
   });
 
-  /*const bgImg = new Image();
-  bgImg.src = "ball.png";
+  const bgImg = new Image();
+  bgImg.src = "assets/title.png";
   let bgPattern,
     bgReady = false;
   bgImg.onload = function() {
     bgReady = true;
   };
 
-  M.Events.on(render, "beforeRender", function() {
+  M.Events.on(render, "afterRender", function(ev) {
+    const t = ev.timestamp;
+    //M.Render.startViewTransform(render);
+
     const ctx = render.context;
 
-    ctx.fillStyle = "#000";
-    ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-
-    M.Render.startViewTransform(render);
-
-    if (bgReady) {
+    if (bgReady && t < 4000) {
       if (!bgPattern) {
         bgPattern = ctx.createPattern(bgImg, "repeat");
       }
 
       ctx.fillStyle = bgPattern;
-      ctx.fillRect(-2500, -2500, 5000, 5000);
+      ctx.globalAlpha = t < 1000 ? t/1000 : (t > 3000 ? 1 - (t - 3000) / 1000 : 1);
+      ctx.fillRect(0, 0, 800, 600);
+      ctx.globalAlpha = 1;
     }
 
-    M.Render.endViewTransform(render);
-  });*/
-
-  M.Events.on(render, "afterRender", function() {
-    //M.Render.startViewTransform(render);
-
-    const ctx = render.context;
     ctx.font = "40px DotMatrixBold";
 
     ctx.fillStyle = isBlinking ? YELLOW : DARK_GRAY;
