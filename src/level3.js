@@ -1,5 +1,5 @@
 levelBuilders.push(function buildLevel(engine, W, H) {
-  const flipperColor = "#b71c1c"; //red
+  const flipperColor = "#aeea00"; //greenish
   const plungerColor = "#fdd835"; //yellow
   const goalColor = "#76ff03"; //green
   const triangleBumperColor = "#673ab7";//purple
