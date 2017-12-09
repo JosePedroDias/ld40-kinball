@@ -19,10 +19,6 @@ let soundEnabled = loadLS("sound", true);
 let spawnPos;
 let isBlinking = false;
 let needsNewBall = false;
-let propagate_key_up_left_flippers = 0;
-let propagate_key_up_right_flippers = 0;
-let number_of_left_flippers = 0;
-let number_of_right_flippers = 0;
 
 let displayTimer;
 function displaySpecialMessage(msg, onDone) {
@@ -47,23 +43,25 @@ function displaySpecialMessage(msg, onDone) {
   }, 150);
 }
 
-function increase_brightness(hex, percent){
-    // strip the leading # if it's there
-    hex = hex.replace(/^\s*#|\s*$/g, '');
+function increase_brightness(hex, percent) {
+  // strip the leading # if it's there
+  hex = hex.replace(/^\s*#|\s*$/g, "");
 
-    // convert 3 char codes --> 6, e.g. `E0F` --> `EE00FF`
-    if(hex.length == 3){
-        hex = hex.replace(/(.)/g, '$1$1');
-    }
+  // convert 3 char codes --> 6, e.g. `E0F` --> `EE00FF`
+  if (hex.length == 3) {
+    hex = hex.replace(/(.)/g, "$1$1");
+  }
 
-    var r = parseInt(hex.substr(0, 2), 16),
-        g = parseInt(hex.substr(2, 2), 16),
-        b = parseInt(hex.substr(4, 2), 16);
+  var r = parseInt(hex.substr(0, 2), 16),
+    g = parseInt(hex.substr(2, 2), 16),
+    b = parseInt(hex.substr(4, 2), 16);
 
-    return '#' +
-       ((0|(1<<8) + r + (256 - r) * percent / 100).toString(16)).substr(1) +
-       ((0|(1<<8) + g + (256 - g) * percent / 100).toString(16)).substr(1) +
-       ((0|(1<<8) + b + (256 - b) * percent / 100).toString(16)).substr(1);
+  return (
+    "#" +
+    (0 | ((1 << 8) + r + (256 - r) * percent / 100)).toString(16).substr(1) +
+    (0 | ((1 << 8) + g + (256 - g) * percent / 100)).toString(16).substr(1) +
+    (0 | ((1 << 8) + b + (256 - b) * percent / 100)).toString(16).substr(1)
+  );
 }
 
 function getTime() {
@@ -123,9 +121,15 @@ function p(arr) {
 const YELLOW = "#DD2";
 const DARK_GRAY = "#333";
 
+const TR_LEFT_FLIPPER = 1;
+const TR_RIGHT_FLIPPER = 2;
+const TR_LAUNCH = 3;
+const TR_TILT = 4;
+const TR_CONTINUE = 5;
+const TR_TOGGLE_AUDIO = 6;
+const TR_TOGGLE_PAUSE = 7; // TODO
 
 const KC_M = 77;
-const KC_R = 82;
 const KC_S = 83;
 const KC_T = 84;
 const KC_Z = 90;
@@ -135,10 +139,34 @@ const KC_RIGHT = 39;
 const KC_UP = 38;
 const KC_DOWN = 40;
 const KC_ENTER = 13;
-const KCS = [KC_Z, KC_M, KC_R, KC_S, KC_DOWN, KC_ENTER, KC_T];
+const KCS = [
+  KC_DOWN,
+  KC_Z,
+  KC_LEFT,
+  KC_M,
+  KC_RIGHT,
+  KC_T,
+  KC_SPACE,
+  KC_UP,
+  KC_ENTER,
+  KC_S
+];
 
-const keyIsDown = {};
-const keyIsUp = {};
+const keyToTrigger = {
+  [KC_DOWN]: TR_LAUNCH,
+  [KC_Z]: TR_LEFT_FLIPPER,
+  [KC_LEFT]: TR_LEFT_FLIPPER,
+  [KC_M]: TR_RIGHT_FLIPPER,
+  [KC_RIGHT]: TR_RIGHT_FLIPPER,
+  [KC_T]: TR_TILT,
+  [KC_SPACE]: TR_TILT,
+  [KC_UP]: TR_TILT,
+  [KC_ENTER]: TR_CONTINUE,
+  [KC_S]: TR_TOGGLE_AUDIO
+};
+
+const triggerIsDown = {};
+let triggerJustChanged = {};
 
 const ballsOnScreen = [];
 let ballsToRemove = [];
@@ -156,20 +184,24 @@ function hookKeys() {
     }
     ev.preventDefault();
     ev.stopPropagation();
-    if (keyIsDown[kc]) {
+
+    const tr = keyToTrigger[kc];
+
+    if (triggerIsDown[tr]) {
       return;
     }
 
-    if (kc === KC_Z || kc === KC_M) {
+    if (tr === TR_LEFT_FLIPPER || tr === TR_RIGHT_FLIPPER) {
       soundEnabled && sfx.flipper.play();
-    } else if (kc === KC_S) {
+    } else if (tr === TR_TOGGLE_AUDIO) {
       soundEnabled = !soundEnabled;
       saveLS("sound", soundEnabled);
       setSfx(soundEnabled);
       setMusic(soundEnabled);
     }
 
-    keyIsDown[kc] = true;
+    triggerIsDown[tr] = true;
+    triggerJustChanged[tr] = true;
   });
 
   document.addEventListener("keyup", ev => {
@@ -179,15 +211,18 @@ function hookKeys() {
     }
     ev.preventDefault();
     ev.stopPropagation();
-    if (!keyIsDown[kc]) {
+
+    const tr = keyToTrigger[kc];
+
+    if (!triggerIsDown[tr]) {
       return;
     }
 
-    if (kc === KC_DOWN) {
+    if (tr === TR_LAUNCH) {
       soundEnabled && sfx.ball_out.play();
     }
 
-    if (kc === KC_ENTER && ballsOnScreen.length === 0) {
+    if (tr === TR_CONTINUE && ballsOnScreen.length === 0) {
       if (won) {
         startNextLevel();
       } else {
@@ -195,8 +230,8 @@ function hookKeys() {
       }
     }
 
-    keyIsDown[kc] = false;
-    keyIsUp[kc] = true;
+    triggerIsDown[tr] = false;
+    triggerJustChanged[tr] = true;
   });
 }
 
@@ -261,12 +296,6 @@ function createFlipper({
 
   const invertAngles = nailRelPos[0] > 0;
 
-  if (invertAngles) {
-    number_of_right_flippers++;
-  } else {
-    number_of_left_flippers++;
-  }
-
   //const rect = M.Bodies.rectangle(nailPos.x, nailPos.y, dims[0], dims[1], {
   //  density: 0.0015
   //}); // 0.001
@@ -299,44 +328,18 @@ function createFlipper({
   });
 
   let wentDownF = 0;
-  let is_key_up_master = false;
 
   beforeUpdateCbs.push(() => {
-    const rotateFlipper = keyIsDown[key];
-    const keyIsUpPressed = keyIsUp[key];
-    let propagate_flipper = 0;
-    if (invertAngles) {
-      propagate_flipper = propagate_key_up_right_flippers;
-    } else {
-      propagate_flipper = propagate_key_up_left_flippers;
-    }
+    const rotateFlipper = triggerIsDown[key];
+    const justWentUp = !rotateFlipper && triggerJustChanged[key];
 
-    const placeBackFlipper =
-      keyIsUpPressed || (propagate_flipper > 0 && !is_key_up_master);
-    if (placeBackFlipper) {
+    if (justWentUp) {
       wentDownF = getTime() + 100;
-      if (keyIsUpPressed) {
-        keyIsUp[key] = false;
-        is_key_up_master = true;
-        if (invertAngles) {
-          propagate_key_up_right_flippers = number_of_right_flippers - 1;
-        } else {
-          propagate_key_up_left_flippers = number_of_left_flippers - 1;
-        }
-      } else {
-        if (invertAngles) {
-          propagate_key_up_right_flippers--;
-        } else {
-          propagate_key_up_left_flippers--;
-        }
-      }
     }
 
     if (rotateFlipper) {
-      //console.log((rect.angle * RAD2DEG).toFixed(1));
       const i = invertAngles ? 1 : -1;
       const n = linearize(rect.angle * RAD2DEG, 30 * i, -7 * i);
-      //console.log((n * 100).toFixed(1));
       M.Body.setAngularVelocity(rect, angVel * n);
     } else {
       if (wentDownF > 0) {
@@ -345,7 +348,6 @@ function createFlipper({
           M.Body.setAngularVelocity(rect, -angVel * 0.3);
         } else {
           wentDownF = 0;
-          is_key_up_master = false;
         }
       }
     }
@@ -366,7 +368,14 @@ function createRect({ engine, pos, dims, angle, options }) {
   return rectangle;
 }
 
-function createRotatingPolygon({ engine, pos, r, spinsPerSecond, sides, options }) {
+function createRotatingPolygon({
+  engine,
+  pos,
+  r,
+  spinsPerSecond,
+  sides,
+  options
+}) {
   const poly = M.Bodies.polygon(pos[0], pos[1], sides, r, options);
   const dAngle = spinsPerSecond * 360 * DEG2RAD / 60;
   beforeUpdateCbs.push(() => {
@@ -412,7 +421,7 @@ function createPlunger({ engine, pos, dims, angle, options }) {
   M.World.add(engine.world, [rectangle, c1, c2]);
 
   beforeUpdateCbs.push(() => {
-    if (keyIsDown[KC_DOWN]) {
+    if (triggerIsDown[TR_LAUNCH]) {
       M.Body.applyForce(rectangle, rectangle.position, {
         x: 0,
         y: 20
@@ -503,6 +512,7 @@ function prepare() {
 
   M.Events.on(engine, "beforeUpdate", function() {
     beforeUpdateCbs.forEach(cb => cb());
+    triggerJustChanged = {};
   });
 
   let levelConfig;
@@ -552,9 +562,10 @@ function prepare() {
           // game over
           setMusic(false);
           soundEnabled && sfx.gameover_voice.play();
-          soundEnabled && setTimeout(function() {
-            soundEnabled && sfx.gameover.play();
-          }, 1000);
+          soundEnabled &&
+            setTimeout(function() {
+              soundEnabled && sfx.gameover.play();
+            }, 1000);
           if (score > highScore) {
             highScore = score;
             saveLS("score", highScore);
@@ -563,36 +574,30 @@ function prepare() {
       }
     });
 
-    number_of_left_flippers = 0;
-    number_of_right_flippers = 0;
-    propagate_key_up_right_flippers = 0;
-    propagate_key_up_left_flippers = 0;
-
     // SAFER WAY TO RESTART... OR DO SOMETHING ELSE?
-    if (currentLevel >= levelBuilders.length){
+    if (currentLevel >= levelBuilders.length) {
       displaySpecialMessage("OO !!!!!CONTRATULATIONS!!!!!! OO");
       currentLevel = 0;
     }
-
 
     levelConfig = levelBuilders[currentLevel](engine, W, H);
     spawnPos = levelConfig.spawnPos;
 
     addBall();
 
-    loadMusic(levelConfig.musicIndex, function(){
+    loadMusic(levelConfig.musicIndex, function() {
       //console.log('called my get part, spare balls - ' + spareBalls + ' number of balls on screen ' + ballsOnScreen.length + 'xxxx' + ballsOnScreen[0].position.x + 'yyyyyyy' + ballsOnScreen[0].position.y  );
-      if (spareBalls <= 0 && ballsOnScreen.length > 2){
+      if (spareBalls <= 0 && ballsOnScreen.length > 2) {
         //console.log('music in panic mode');
         return 2;
       }
 
-      if (ballsOnScreen.length){
-        if (ballsOnScreen[0].position.y <= levelConfig.higher_h){
+      if (ballsOnScreen.length) {
+        if (ballsOnScreen[0].position.y <= levelConfig.higher_h) {
           //console.log('music in higher mode');
           return 2;
         }
-        if (ballsOnScreen[0].position.y <= levelConfig.middle_h){
+        if (ballsOnScreen[0].position.y <= levelConfig.middle_h) {
           //console.log('music in middle mode');
           return 1;
         }
@@ -603,11 +608,11 @@ function prepare() {
       return 0;
     });
     soundEnabled && sfx.get_ready.play();
-    soundEnabled && setTimeout(function() {
-      // avoid double play if player activated the sound in this time
-      !isMusicPlaying() && setMusic(soundEnabled);
-    }, 1500);
-
+    soundEnabled &&
+      setTimeout(function() {
+        // avoid double play if player activated the sound in this time
+        !isMusicPlaying() && setMusic(soundEnabled);
+      }, 1500);
 
     ++currentLevel;
   }
@@ -629,7 +634,7 @@ function prepare() {
     let tilt_offset_y = 0;
     let apply_tilt = false;
 
-    if (keyIsDown[KC_T]) {
+    if (triggerIsDown[TR_TILT]) {
       const cdate = new Date().valueOf();
       if (currentTilt === 0) {
         ///console.log('Set new tilt');
@@ -658,8 +663,6 @@ function prepare() {
         tilt_offset_y = getRandomInt(-10, 10);
         buffer = [];
       }
-    } else if (keyIsUp[KC_T]) {
-      keyIsUp[KC_T] = false;
     }
 
     /* reset tilt state */
@@ -738,12 +741,22 @@ function prepare() {
       //soundEnabled && sfx.collision_1.play();
 
       // all the bodies who have sound will restore to their original colors on collision end
-      if (bodyA.custom && bodyA.custom.indexOf('sfx|') !== -1 && bodyA.render && bodyA.render.oldFillStyle){
+      if (
+        bodyA.custom &&
+        bodyA.custom.indexOf("sfx|") !== -1 &&
+        bodyA.render &&
+        bodyA.render.oldFillStyle
+      ) {
         ++score;
         bodyA.render.fillStyle = bodyA.render.oldFillStyle;
         bodyA.render.oldFillStyle = undefined;
       }
-      if (bodyB.custom && bodyB.custom.indexOf('sfx|') !== -1 && bodyB.render && bodyB.render.oldFillStyle){
+      if (
+        bodyB.custom &&
+        bodyB.custom.indexOf("sfx|") !== -1 &&
+        bodyB.render &&
+        bodyB.render.oldFillStyle
+      ) {
         ++score;
         bodyB.render.fillStyle = bodyB.render.oldFillStyle;
         bodyA.render.oldFillStyle = undefined;
@@ -755,20 +768,37 @@ function prepare() {
       if (bodyB.custom) {
         onCustom(bodyB.custom, bodyB, bodyA);
       }
-
     });
   });
 
   M.Events.on(engine, "collisionStart", ev => {
     ev.pairs.forEach(({ bodyA, bodyB }) => {
       // all the bodies who have sound will have increased brightness during the collision
-      if (bodyA.custom && bodyA.custom.indexOf('sfx|') !== -1 && bodyA.render && bodyA.render.fillStyle && bodyA.render.oldFillStyle === undefined){
+      if (
+        bodyA.custom &&
+        bodyA.custom.indexOf("sfx|") !== -1 &&
+        bodyA.render &&
+        bodyA.render.fillStyle &&
+        bodyA.render.oldFillStyle === undefined
+      ) {
         bodyA.render.oldFillStyle = bodyA.render.fillStyle;
-        bodyA.render.fillStyle = increase_brightness(bodyA.render.fillStyle, 25);
+        bodyA.render.fillStyle = increase_brightness(
+          bodyA.render.fillStyle,
+          25
+        );
       }
-      if (bodyB.custom && bodyB.custom.indexOf('sfx|') !== -1 && bodyB.render && bodyB.render.fillStyle && bodyB.render.oldFillStyle === undefined){
+      if (
+        bodyB.custom &&
+        bodyB.custom.indexOf("sfx|") !== -1 &&
+        bodyB.render &&
+        bodyB.render.fillStyle &&
+        bodyB.render.oldFillStyle === undefined
+      ) {
         bodyB.render.oldFillStyle = bodyB.render.fillStyle;
-        bodyB.render.fillStyle = increase_brightness(bodyB.render.fillStyle, 25);
+        bodyB.render.fillStyle = increase_brightness(
+          bodyB.render.fillStyle,
+          25
+        );
       }
     });
   });
@@ -793,7 +823,8 @@ function prepare() {
       }
 
       ctx.fillStyle = bgPattern;
-      ctx.globalAlpha = t < 1000 ? t/1000 : (t > 3000 ? 1 - (t - 3000) / 1000 : 1);
+      ctx.globalAlpha =
+        t < 1000 ? t / 1000 : t > 3000 ? 1 - (t - 3000) / 1000 : 1;
       ctx.fillRect(0, 0, 800, 600);
       ctx.globalAlpha = 1;
     }

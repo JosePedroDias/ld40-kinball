@@ -2,29 +2,26 @@ levelBuilders.push(function buildLevel(engine, W, H) {
   const flipperColor = "#eceff1"; //white
   const plungerColor = "#fdd835"; //yellow
   const goalColor = "#76ff03"; //green
-  const triangleBumperColor = "#673ab7";//purple
+  const triangleBumperColor = "#673ab7"; //purple
 
-  const circularBumperColor = "#ffc046";//yellow
+  const circularBumperColor = "#ffc046"; //yellow
 
   const wallColorDark = "#808e95"; //gray light
 
-  const orangeDestructible_1 = "#ff6f00";//orange dark
-  const orangeDestructible_2 = "#ffa000";//orange
-  const orangeDestructible_3 = "#ffca28";//orange light
-  const tealishDestructible_1 = "#004c40";//teal dark
-  const tealishDestructible_2 = "#00796b";//teal
-  const tealishDestructible_3 = "#48a999";//teal light
+  const orangeDestructible_1 = "#ff6f00"; //orange dark
+  const orangeDestructible_2 = "#ffa000"; //orange
+  const orangeDestructible_3 = "#ffca28"; //orange light
+  const tealishDestructible_1 = "#004c40"; //teal dark
+  const tealishDestructible_2 = "#00796b"; //teal
+  const tealishDestructible_3 = "#48a999"; //teal light
 
+  const redDestructible_1 = "#a30000"; //red dark
+  const redDestructible_2 = "#ff6434"; //red
+  const redDestructible_3 = "#f48fb1"; //red light
 
+  const pinkish = "#ec407a"; //pink
 
-
-  const redDestructible_1 = "#a30000";//red dark
-  const redDestructible_2 = "#ff6434";//red
-  const redDestructible_3 = "#f48fb1";//red light
-
-  const pinkish = "#ec407a";//pink
-
-  const gatewayColor = "#b2ebf2";//teal
+  const gatewayColor = "#b2ebf2"; //teal
 
   const boundsAreVisible = true;
 
@@ -37,7 +34,7 @@ levelBuilders.push(function buildLevel(engine, W, H) {
     dims: [128, 24],
     nailRelPos: [-48, 0],
     minAngle: 60,
-    key: KC_Z,
+    key: TR_LEFT_FLIPPER,
     angVel: -0.3,
     renderOptions: {
       fillStyle: flipperColor
@@ -51,7 +48,7 @@ levelBuilders.push(function buildLevel(engine, W, H) {
     dims: [128, 24],
     nailRelPos: [48, 0],
     minAngle: 60,
-    key: KC_M,
+    key: TR_RIGHT_FLIPPER,
     angVel: 0.3,
     renderOptions: {
       fillStyle: flipperColor
@@ -71,20 +68,19 @@ levelBuilders.push(function buildLevel(engine, W, H) {
     }
   });
 
-    //right flipper lower - left
+  //right flipper lower - left
   createFlipper({
     engine,
     pos: [W / 2 + 100 - 670, H * 0.9],
     dims: [128, 24],
     nailRelPos: [48, 0],
     minAngle: 60,
-    key: KC_M,
+    key: TR_RIGHT_FLIPPER,
     angVel: 0.3,
     renderOptions: {
       fillStyle: flipperColor
     }
   });
-
 
   // right rectangle - flipper to corner - lower
   createRect({
@@ -99,7 +95,7 @@ levelBuilders.push(function buildLevel(engine, W, H) {
     }
   });
 
-    // left rectangle - flipper to corner - lower
+  // left rectangle - flipper to corner - lower
   createRect({
     engine,
     pos: [W / 2 - 250 - 670, H * 0.8],
@@ -119,7 +115,7 @@ levelBuilders.push(function buildLevel(engine, W, H) {
     dims: [128, 24],
     nailRelPos: [-48, 0],
     minAngle: 60,
-    key: KC_Z,
+    key: TR_LEFT_FLIPPER,
     angVel: -0.3,
     renderOptions: {
       fillStyle: flipperColor
@@ -194,10 +190,7 @@ levelBuilders.push(function buildLevel(engine, W, H) {
   //   }
   // });
 
-
-
-
-createBumper({
+  createBumper({
     engine,
     pos: [400, -300],
     r: 32,
@@ -242,7 +235,7 @@ createBumper({
       }
     }
   });
-  
+
   createRotatingPolygon({
     engine,
     pos: [200, -600],
@@ -259,7 +252,7 @@ createBumper({
     }
   });
 
-    createRotatingPolygon({
+  createRotatingPolygon({
     engine,
     pos: [200, -500],
     r: 25,
@@ -275,7 +268,7 @@ createBumper({
     }
   });
 
-    createRotatingPolygon({
+  createRotatingPolygon({
     engine,
     pos: [400, -800],
     r: 25,
@@ -306,7 +299,7 @@ createBumper({
       }
     }
   });
-  
+
   createRotatingPolygon({
     engine,
     pos: [400, -600],
@@ -323,7 +316,7 @@ createBumper({
     }
   });
 
-    createRotatingPolygon({
+  createRotatingPolygon({
     engine,
     pos: [400, -500],
     r: 25,
@@ -339,8 +332,7 @@ createBumper({
     }
   });
 
-
-//end of squares
+  //end of squares
 
   createRotatingPolygon({
     engine,
@@ -357,7 +349,6 @@ createBumper({
       }
     }
   });
-
 
   // createRotatingPolygon({
   //   engine,
@@ -539,7 +530,7 @@ createBumper({
     dims: [128, 24],
     nailRelPos: [-48, 0],
     minAngle: 60,
-    key: KC_Z,
+    key: TR_LEFT_FLIPPER,
     angVel: -0.3,
     renderOptions: {
       fillStyle: flipperColor
@@ -553,13 +544,12 @@ createBumper({
     dims: [128, 24],
     nailRelPos: [48, 0],
     minAngle: 60,
-    key: KC_M,
+    key: TR_RIGHT_FLIPPER,
     angVel: 0.3,
     renderOptions: {
       fillStyle: flipperColor
     }
   });
-
 
   //bottom bumpers
   //top bumpers
@@ -587,7 +577,6 @@ createBumper({
     }
   });
 
-
   //top bumpers
   createBumper({
     engine,
@@ -612,7 +601,6 @@ createBumper({
       }
     }
   });
-
 
   //triangle left top
   createTriangleBumper({
@@ -660,7 +648,6 @@ createBumper({
       }
     }
   });
-
 
   // //triangle right middle
   createTriangleBumper({
@@ -718,7 +705,6 @@ createBumper({
       }
     }
   });
-
 
   // right gateway
   createRect({
@@ -825,9 +811,6 @@ createBumper({
     }
   });
 
-
-  
-
   createRect({
     engine,
     pos: [W * 0.5, H * 0.3],
@@ -867,7 +850,6 @@ createBumper({
     }
   });
 
-
   createBumper({
     engine,
     pos: [308, 150],
@@ -877,7 +859,6 @@ createBumper({
       render: {
         fillStyle: pinkish
       }
-
     }
   });
 
@@ -890,13 +871,8 @@ createBumper({
       render: {
         fillStyle: pinkish
       }
-
     }
   });
-
-
-
-
 
   createPlunger({
     engine,
@@ -934,10 +910,8 @@ createBumper({
       render: {
         fillStyle: pinkish
       }
-
     }
   });
-
 
   createRotatingPolygon({
     engine,
@@ -954,7 +928,7 @@ createBumper({
     }
   });
 
-createRotatingPolygon({
+  createRotatingPolygon({
     engine,
     pos: [400, -100],
     r: 140,
@@ -970,7 +944,7 @@ createRotatingPolygon({
     }
   });
 
-createRotatingPolygon({
+  createRotatingPolygon({
     engine,
     pos: [800 - 200, -800 + 600],
     r: 25,
@@ -1001,7 +975,7 @@ createRotatingPolygon({
       }
     }
   });
-  
+
   createRotatingPolygon({
     engine,
     pos: [800 - 200, -600 + 600],
@@ -1018,7 +992,7 @@ createRotatingPolygon({
     }
   });
 
-    createRotatingPolygon({
+  createRotatingPolygon({
     engine,
     pos: [800 - 200, -500 + 600],
     r: 25,
@@ -1034,8 +1008,7 @@ createRotatingPolygon({
     }
   });
 
-
-    //left part of the table
+  //left part of the table
 
   //triangle right top
   createTriangleBumper({
@@ -1141,7 +1114,7 @@ createRotatingPolygon({
 
   createBumper({
     engine,
-    pos: [ -120, 350],
+    pos: [-120, 350],
     r: 32,
     options: {
       custom: "sfx|collision_3",
@@ -1433,10 +1406,10 @@ createRotatingPolygon({
 
   return {
     spawnPos: [780, H * 0.2],
-    
+
     musicIndex: 0,
     higher_h: -340000, //never play the highest
-    middle_h: -340, 
+    middle_h: -340,
     lower_h: H * 0.8
   };
 });

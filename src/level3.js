@@ -2,26 +2,25 @@ levelBuilders.push(function buildLevel(engine, W, H) {
   const flipperColor = "#aeea00"; //greenish
   const plungerColor = "#fdd835"; //yellow
   const goalColor = "#76ff03"; //green
-  const triangleBumperColor = "#673ab7";//purple
+  const triangleBumperColor = "#673ab7"; //purple
 
-  const circularBumperColor = "#ffc046";//yellow
+  const circularBumperColor = "#ffc046"; //yellow
 
   const wallColorDark = "#808e95"; //gray light
 
-  const orangeDestructible_1 = "#ff6f00";//orange dark
-  const orangeDestructible_2 = "#ffa000";//orange
-  const orangeDestructible_3 = "#ffca28";//orange light
-  const tealishDestructible_1 = "#004c40";//teal dark
-  const tealishDestructible_2 = "#00796b";//teal
-  const tealishDestructible_3 = "#48a999";//teal light
-  const pinkish = "#ec407a";//pink
+  const orangeDestructible_1 = "#ff6f00"; //orange dark
+  const orangeDestructible_2 = "#ffa000"; //orange
+  const orangeDestructible_3 = "#ffca28"; //orange light
+  const tealishDestructible_1 = "#004c40"; //teal dark
+  const tealishDestructible_2 = "#00796b"; //teal
+  const tealishDestructible_3 = "#48a999"; //teal light
+  const pinkish = "#ec407a"; //pink
 
+  const redDestructible_1 = "#a30000"; //red dark
+  const redDestructible_2 = "#ff6434"; //red
+  const redDestructible_3 = "#f48fb1"; //red light
 
-  const redDestructible_1 = "#a30000";//red dark
-  const redDestructible_2 = "#ff6434";//red
-  const redDestructible_3 = "#f48fb1";//red light
-
-  const gatewayColor = "#b2ebf2";//teal
+  const gatewayColor = "#b2ebf2"; //teal
 
   const boundsAreVisible = false;
 
@@ -34,7 +33,7 @@ levelBuilders.push(function buildLevel(engine, W, H) {
     dims: [128, 24],
     nailRelPos: [-48, 0],
     minAngle: 60,
-    key: KC_Z,
+    key: TR_LEFT_FLIPPER,
     angVel: -0.3,
     renderOptions: {
       fillStyle: flipperColor
@@ -48,7 +47,7 @@ levelBuilders.push(function buildLevel(engine, W, H) {
     dims: [128, 24],
     nailRelPos: [48, 0],
     minAngle: 60,
-    key: KC_M,
+    key: TR_RIGHT_FLIPPER,
     angVel: 0.3,
     renderOptions: {
       fillStyle: flipperColor
@@ -62,7 +61,7 @@ levelBuilders.push(function buildLevel(engine, W, H) {
     dims: [128, 24],
     nailRelPos: [-48, 0],
     minAngle: 60,
-    key: KC_Z,
+    key: TR_LEFT_FLIPPER,
     angVel: -0.3,
     renderOptions: {
       fillStyle: flipperColor
@@ -76,7 +75,7 @@ levelBuilders.push(function buildLevel(engine, W, H) {
     dims: [128, 24],
     nailRelPos: [48, 0],
     minAngle: 60,
-    key: KC_M,
+    key: TR_RIGHT_FLIPPER,
     angVel: 0.3,
     renderOptions: {
       fillStyle: flipperColor
@@ -138,7 +137,6 @@ levelBuilders.push(function buildLevel(engine, W, H) {
   //   }
   // });
 
-
   createRotatingPolygon({
     engine,
     pos: [470, -300],
@@ -171,7 +169,6 @@ levelBuilders.push(function buildLevel(engine, W, H) {
     }
   });
 
-
   createRotatingPolygon({
     engine,
     pos: [450, -700],
@@ -179,7 +176,13 @@ levelBuilders.push(function buildLevel(engine, W, H) {
     spinsPerSecond: 0.5,
     sides: 4,
     options: {
-      remainingBrickColors: [redDestructible_2, redDestructible_3, tealishDestructible_1, tealishDestructible_2, tealishDestructible_3],
+      remainingBrickColors: [
+        redDestructible_2,
+        redDestructible_3,
+        tealishDestructible_1,
+        tealishDestructible_2,
+        tealishDestructible_3
+      ],
       custom: "brick sfx|dest1",
       isStatic: true,
       render: {
@@ -187,7 +190,6 @@ levelBuilders.push(function buildLevel(engine, W, H) {
       }
     }
   });
-
 
   // createRotatingPolygon({
   //   engine,
@@ -356,7 +358,7 @@ levelBuilders.push(function buildLevel(engine, W, H) {
     dims: [128, 24],
     nailRelPos: [-48, 0],
     minAngle: 60,
-    key: KC_Z,
+    key: TR_LEFT_FLIPPER,
     angVel: -0.3,
     renderOptions: {
       fillStyle: flipperColor
@@ -370,7 +372,7 @@ levelBuilders.push(function buildLevel(engine, W, H) {
     dims: [128, 24],
     nailRelPos: [48, 0],
     minAngle: 60,
-    key: KC_M,
+    key: TR_RIGHT_FLIPPER,
     angVel: 0.3,
     renderOptions: {
       fillStyle: flipperColor
@@ -405,7 +407,7 @@ levelBuilders.push(function buildLevel(engine, W, H) {
   //top bumpers
   createBumper({
     engine,
-    pos: [200, 300-300],
+    pos: [200, 300 - 300],
     r: 32,
     options: {
       custom: "sfx|collision_3",
@@ -417,7 +419,7 @@ levelBuilders.push(function buildLevel(engine, W, H) {
 
   createBumper({
     engine,
-    pos: [600, 300-300],
+    pos: [600, 300 - 300],
     r: 32,
     options: {
       custom: "sfx|collision_3",
@@ -427,13 +429,11 @@ levelBuilders.push(function buildLevel(engine, W, H) {
     }
   });
 
-
-
   // left gateway
   createRect({
     engine,
     pos: [150, -50 - 600],
-    dims: [400-100, 12],
+    dims: [400 - 100, 12],
     angle: 70,
     options: {
       custom: "sfx|metal",
@@ -446,7 +446,7 @@ levelBuilders.push(function buildLevel(engine, W, H) {
   createRect({
     engine,
     pos: [230, -50 - 600],
-    dims: [400-100, 12],
+    dims: [400 - 100, 12],
     angle: 70,
     options: {
       custom: "sfx|metal",
@@ -456,12 +456,11 @@ levelBuilders.push(function buildLevel(engine, W, H) {
     }
   });
 
-
   // right gateway
   createRect({
     engine,
     pos: [568 + 50, -600],
-    dims: [400-100, 12],
+    dims: [400 - 100, 12],
     angle: -70,
     options: {
       custom: "sfx|metal",
@@ -474,7 +473,7 @@ levelBuilders.push(function buildLevel(engine, W, H) {
   createRect({
     engine,
     pos: [648 + 50, -600],
-    dims: [400-100, 12],
+    dims: [400 - 100, 12],
     angle: -70,
     options: {
       custom: "sfx|metal",
@@ -562,8 +561,6 @@ levelBuilders.push(function buildLevel(engine, W, H) {
     }
   });
 
-
-
   createRect({
     engine,
     pos: [W * 0.5, H * 0.3],
@@ -603,7 +600,6 @@ levelBuilders.push(function buildLevel(engine, W, H) {
     }
   });
 
-
   createBumper({
     engine,
     pos: [308, 150],
@@ -613,7 +609,6 @@ levelBuilders.push(function buildLevel(engine, W, H) {
       render: {
         fillStyle: pinkish
       }
-
     }
   });
 
@@ -626,12 +621,8 @@ levelBuilders.push(function buildLevel(engine, W, H) {
       render: {
         fillStyle: pinkish
       }
-
     }
   });
-
-
-
 
   // //triangle right top
   createTriangleBumper({
@@ -648,8 +639,8 @@ levelBuilders.push(function buildLevel(engine, W, H) {
     }
   });
 
-// //triangle left top
-createTriangleBumper({
+  // //triangle left top
+  createTriangleBumper({
     engine,
     pos: [100, -160],
     v0: [0, 0],
@@ -662,21 +653,6 @@ createTriangleBumper({
       }
     }
   });
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
   createPlunger({
     engine,
@@ -714,7 +690,6 @@ createTriangleBumper({
       render: {
         fillStyle: pinkish
       }
-
     }
   });
 
@@ -737,7 +712,7 @@ createTriangleBumper({
     spawnPos: [780, H * 0.2],
     musicIndex: 1,
     higher_h: -340000, //never play the highest
-    middle_h: -340, 
+    middle_h: -340,
     lower_h: H * 0.8
   };
 });

@@ -6,11 +6,24 @@ A pinball game with physics.
 
 Keys are:
 
-* Z - left flipper
-* M - right flipper
-* down - launch ball with plunger
-* T - tilt table
-(should run on greenfield desktop browsers. Chrome and Firefox run `index.html` while Edge and Safari run only in `index-compat.html`)
+* left arrow / Z - left flipper
+* right arrow / M - right flipper
+* down arrow - launch ball with plunger
+* space bar / up arrow / T - tilt table (1 every 10 seconds)
+
+* enter - resumes after level change or game over
+* s - sound toggle
+
+(should run on greenfield desktop browsers. Chrome and Firefox run `index.html`
+while Edge and Safari run only in `index-compat.html`)
+
+## Changelog
+
+### 1.1 - 2017/12/09
+
+* changed mapping of keys to triggers from 1 to 1 to 1 to many
+* replaced contrived logic to control several flippers of the same side
+* replaed keys for trigger constants in all levels because of previous changes
 
 ## External Credits
 

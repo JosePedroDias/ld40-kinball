@@ -2,21 +2,21 @@ levelBuilders.push(function buildLevel(engine, W, H) {
   const flipperColor = "#01579b"; //blue
   const plungerColor = "#fdd835"; //yellow
   const goalColor = "#76ff03"; //green
-  const triangleBumperColor = "#673ab7";//purple
+  const triangleBumperColor = "#673ab7"; //purple
 
-  const circularBumperColor = "#ffc046";//yellow
+  const circularBumperColor = "#ffc046"; //yellow
 
   const wallColorDark = "#808e95"; //gray light
 
-  const orangeDestructible_1 = "#ff6f00";//orange dark
-  const orangeDestructible_2 = "#ffa000";//orange
-  const orangeDestructible_3 = "#ffca28";//orange light
-  const tealishDestructible_1 = "#004c40";//teal dark
-  const tealishDestructible_2 = "#00796b";//teal
-  const tealishDestructible_3 = "#48a999";//teal light
-  const pinkish = "#ec407a";//pink
+  const orangeDestructible_1 = "#ff6f00"; //orange dark
+  const orangeDestructible_2 = "#ffa000"; //orange
+  const orangeDestructible_3 = "#ffca28"; //orange light
+  const tealishDestructible_1 = "#004c40"; //teal dark
+  const tealishDestructible_2 = "#00796b"; //teal
+  const tealishDestructible_3 = "#48a999"; //teal light
+  const pinkish = "#ec407a"; //pink
 
-  const gatewayColor = "#b2ebf2";//teal
+  const gatewayColor = "#b2ebf2"; //teal
 
   const boundsAreVisible = false;
 
@@ -74,7 +74,6 @@ levelBuilders.push(function buildLevel(engine, W, H) {
     }
   });
 
-
   createBumper({
     engine,
     pos: [400, 300 - 700],
@@ -86,7 +85,6 @@ levelBuilders.push(function buildLevel(engine, W, H) {
       }
     }
   });
-
 
   createBumper({
     engine,
@@ -199,7 +197,6 @@ levelBuilders.push(function buildLevel(engine, W, H) {
     }
   });
 
-
   // bottom to top
 
   //left flipper lower
@@ -209,7 +206,7 @@ levelBuilders.push(function buildLevel(engine, W, H) {
     dims: [128, 24],
     nailRelPos: [-48, 0],
     minAngle: 60,
-    key: KC_Z,
+    key: TR_LEFT_FLIPPER,
     angVel: -0.3,
     renderOptions: {
       fillStyle: flipperColor
@@ -223,7 +220,7 @@ levelBuilders.push(function buildLevel(engine, W, H) {
     dims: [128, 24],
     nailRelPos: [48, 0],
     minAngle: 60,
-    key: KC_M,
+    key: TR_RIGHT_FLIPPER,
     angVel: 0.3,
     renderOptions: {
       fillStyle: flipperColor
@@ -260,7 +257,7 @@ levelBuilders.push(function buildLevel(engine, W, H) {
   createRect({
     engine,
     pos: [W / 2 - 340, -210 + 200],
-    dims: [1300-400, 24],
+    dims: [1300 - 400, 24],
     angle: 90,
     options: {
       render: {
@@ -273,7 +270,7 @@ levelBuilders.push(function buildLevel(engine, W, H) {
   createRect({
     engine,
     pos: [W / 2 + 340, -210 + 200],
-    dims: [1300-400, 24],
+    dims: [1300 - 400, 24],
     angle: 90,
     options: {
       render: {
@@ -286,7 +283,7 @@ levelBuilders.push(function buildLevel(engine, W, H) {
   createRect({
     engine,
     pos: [W / 2 + 420, -210 + 200],
-    dims: [1300-400, 24],
+    dims: [1300 - 400, 24],
     angle: 90,
     options: {
       render: {
@@ -297,7 +294,7 @@ levelBuilders.push(function buildLevel(engine, W, H) {
 
   //first arc - start - right
   const arc1 = createArc({
-    pos: [730, -870 +400],
+    pos: [730, -870 + 400],
     r: 90,
     a0: -90,
     a1: 0,
@@ -314,7 +311,7 @@ levelBuilders.push(function buildLevel(engine, W, H) {
 
   //second arc - start - left
   const arc2 = createArc({
-    pos: [150, -870 +400],
+    pos: [150, -870 + 400],
     r: 90,
     a0: -90,
     a1: -180,
@@ -332,7 +329,7 @@ levelBuilders.push(function buildLevel(engine, W, H) {
   // top limit
   createRect({
     engine,
-    pos: [440, -961 +400],
+    pos: [440, -961 + 400],
     dims: [580, 24],
     angle: 0,
     options: {
@@ -354,8 +351,6 @@ levelBuilders.push(function buildLevel(engine, W, H) {
       }
     }
   });
-
-
 
   // middle top
 
@@ -424,8 +419,7 @@ levelBuilders.push(function buildLevel(engine, W, H) {
   //   }
   // });
 
-///
-  
+  ///
 
   // middle bottom
 
@@ -477,7 +471,6 @@ levelBuilders.push(function buildLevel(engine, W, H) {
       render: {
         fillStyle: pinkish
       }
-
     }
   });
 
@@ -490,7 +483,6 @@ levelBuilders.push(function buildLevel(engine, W, H) {
       render: {
         fillStyle: pinkish
       }
-
     }
   });
 
@@ -557,7 +549,6 @@ levelBuilders.push(function buildLevel(engine, W, H) {
       render: {
         fillStyle: pinkish
       }
-
     }
   });
 
@@ -604,7 +595,6 @@ levelBuilders.push(function buildLevel(engine, W, H) {
     }
   });
 
-
   createBumper({
     engine,
     pos: [308 + 200, 150 - 200],
@@ -614,7 +604,6 @@ levelBuilders.push(function buildLevel(engine, W, H) {
       render: {
         fillStyle: pinkish
       }
-
     }
   });
 
@@ -676,8 +665,7 @@ levelBuilders.push(function buildLevel(engine, W, H) {
 
   //top bumpers
 
-
-   createBumper({
+  createBumper({
     engine,
     pos: [490 - 200, 150 - 400],
     r: 12,
@@ -686,7 +674,6 @@ levelBuilders.push(function buildLevel(engine, W, H) {
       render: {
         fillStyle: pinkish
       }
-
     }
   });
 
@@ -699,11 +686,8 @@ levelBuilders.push(function buildLevel(engine, W, H) {
       render: {
         fillStyle: pinkish
       }
-
     }
   });
-
-
 
   createPlunger({
     engine,
@@ -741,10 +725,8 @@ levelBuilders.push(function buildLevel(engine, W, H) {
       render: {
         fillStyle: pinkish
       }
-
     }
   });
-
 
   // GOAL
   createRotatingPolygon({
@@ -766,7 +748,7 @@ levelBuilders.push(function buildLevel(engine, W, H) {
     spawnPos: [780, H * 0.2],
     musicIndex: 0,
     higher_h: -340000, //never play the highest
-    middle_h: -240, 
+    middle_h: -240,
     lower_h: H * 0.8
   };
 });
