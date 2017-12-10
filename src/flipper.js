@@ -6,6 +6,8 @@ const H = 600;
 const DEG2RAD = Math.PI / 180;
 const RAD2DEG = 180 / Math.PI;
 
+const DEBUG_TRIGGERS = false;
+
 let currentLevel = 0;
 let score = 0;
 let spareBalls = 3;
@@ -125,9 +127,8 @@ const TR_LEFT_FLIPPER = 1;
 const TR_RIGHT_FLIPPER = 2;
 const TR_LAUNCH = 3;
 const TR_TILT = 4;
-const TR_CONTINUE = 5;
-const TR_TOGGLE_AUDIO = 6;
-const TR_TOGGLE_PAUSE = 7; // TODO
+const TR_TOGGLE_AUDIO = 5;
+const TR_TOGGLE_PAUSE = 6; // TODO
 
 const KC_M = 77;
 const KC_S = 83;
@@ -138,7 +139,6 @@ const KC_LEFT = 37;
 const KC_RIGHT = 39;
 const KC_UP = 38;
 const KC_DOWN = 40;
-const KC_ENTER = 13;
 const KCS = [
   KC_DOWN,
   KC_Z,
@@ -148,7 +148,6 @@ const KCS = [
   KC_T,
   KC_SPACE,
   KC_UP,
-  KC_ENTER,
   KC_S
 ];
 
@@ -161,12 +160,12 @@ const keyToTrigger = {
   [KC_T]: TR_TILT,
   [KC_SPACE]: TR_TILT,
   [KC_UP]: TR_TILT,
-  [KC_ENTER]: TR_CONTINUE,
   [KC_S]: TR_TOGGLE_AUDIO
 };
 
 const triggerIsDown = {};
 let triggerJustChanged = {};
+let anyTriggerIsDown = false;
 
 const ballsOnScreen = [];
 let ballsToRemove = [];
@@ -191,15 +190,6 @@ function hookKeys() {
       return;
     }
 
-    if (tr === TR_LEFT_FLIPPER || tr === TR_RIGHT_FLIPPER) {
-      soundEnabled && sfx.flipper.play();
-    } else if (tr === TR_TOGGLE_AUDIO) {
-      soundEnabled = !soundEnabled;
-      saveLS("sound", soundEnabled);
-      setSfx(soundEnabled);
-      setMusic(soundEnabled);
-    }
-
     triggerIsDown[tr] = true;
     triggerJustChanged[tr] = true;
   });
@@ -216,18 +206,6 @@ function hookKeys() {
 
     if (!triggerIsDown[tr]) {
       return;
-    }
-
-    if (tr === TR_LAUNCH) {
-      soundEnabled && sfx.ball_out.play();
-    }
-
-    if (tr === TR_CONTINUE && ballsOnScreen.length === 0) {
-      if (won) {
-        startNextLevel();
-      } else {
-        restart();
-      }
     }
 
     triggerIsDown[tr] = false;
@@ -378,6 +356,7 @@ function createRotatingPolygon({
 }) {
   const poly = M.Bodies.polygon(pos[0], pos[1], sides, r, options);
   const dAngle = spinsPerSecond * 360 * DEG2RAD / 60;
+
   beforeUpdateCbs.push(() => {
     M.Body.setAngle(poly, poly.angle + dAngle);
   });
@@ -420,7 +399,40 @@ function createPlunger({ engine, pos, dims, angle, options }) {
 
   M.World.add(engine.world, [rectangle, c1, c2]);
 
+  function justDown(tr) {
+    return triggerJustChanged[tr] && triggerIsDown[tr];
+  }
+
+  function justUp(tr) {
+    return triggerJustChanged[tr] && !triggerIsDown[tr];
+  }
+
   beforeUpdateCbs.push(() => {
+    // down
+    if (justDown(TR_LEFT_FLIPPER) || justDown(TR_RIGHT_FLIPPER)) {
+      soundEnabled && sfx.flipper.play();
+    }
+
+    if (justDown(TR_TOGGLE_AUDIO)) {
+      soundEnabled = !soundEnabled;
+      saveLS("sound", soundEnabled);
+      setSfx(soundEnabled);
+      setMusic(soundEnabled);
+    }
+
+    // up
+    if (justUp(TR_LAUNCH)) {
+      soundEnabled && sfx.ball_out.play();
+    }
+
+    if (anyTriggerIsDown && ballsOnScreen.length === 0) {
+      if (won) {
+        startNextLevel();
+      } else {
+        restart();
+      }
+    }
+
     if (triggerIsDown[TR_LAUNCH]) {
       M.Body.applyForce(rectangle, rectangle.position, {
         x: 0,
@@ -477,6 +489,66 @@ function createTriangleBumper({ engine, pos, v0, v1, v2, r, options }) {
   return tri;
 }
 
+setTimeout(hookTouch, 500);
+
+function hookTouch() {
+  const g = document.querySelector("canvas").getBoundingClientRect();
+  const x0 = g.left;
+  const y0 = g.top;
+  //console.log(x0, y0);
+  const h = 0.5;
+  function electTrigger(pos) {
+    const [x, y] = [
+      clamp((pos[0] - x0) / W, 0, 1),
+      clamp((pos[1] - y0) / H, 0, 1)
+    ];
+
+    const a = x > y; // TR
+    const b = x > 1 - y; // BR
+    //console.log("%s, %s -> %s %s", x.toFixed(1), y.toFixed(1), a ? 1 : 0, b ? 1 : 0);
+
+    if (a) {
+      if (b) {
+        return TR_RIGHT_FLIPPER; // right
+      } else {
+        return TR_TILT; // top
+      }
+    } else {
+      if (b) {
+        return TR_LAUNCH; // bottom
+      } else {
+        return TR_LEFT_FLIPPER; // left
+      }
+    }
+  }
+
+  function setTouchTrigger(state) {
+    return function(ev) {
+      ev.preventDefault();
+      ev.stopPropagation(); // touches changedTouches targetTouches
+      for (let i = 0, l = ev.changedTouches.length; i < l; ++i) {
+        //console.log(l);
+        const ct = ev.changedTouches[i];
+        const tr = electTrigger([ct.clientX, ct.clientY]);
+        triggerIsDown[tr] = state;
+        triggerJustChanged[tr] = true;
+      }
+      //return true;
+    };
+  }
+
+  document.documentElement.addEventListener(
+    "touchstart",
+    setTouchTrigger(true),
+    { passive: false }
+  );
+  document.documentElement.addEventListener(
+    "touchend",
+    setTouchTrigger(false),
+    { passive: false }
+  );
+}
+
 function hookMouse({ engine, render }) {
   const mouse = M.Mouse.create(render.canvas);
   const mouseConstraint = M.MouseConstraint.create(engine, {
@@ -512,6 +584,13 @@ function prepare() {
 
   M.Events.on(engine, "beforeUpdate", function() {
     beforeUpdateCbs.forEach(cb => cb());
+
+    anyTriggerIsDown = false;
+    const triggers = Object.keys(triggerIsDown);
+    for (let k in triggers) {
+      anyTriggerIsDown |= triggerIsDown[k];
+    }
+
     triggerJustChanged = {};
   });
 
@@ -850,9 +929,25 @@ function prepare() {
         " L:" +
         currentLevel;
     } else {
-      msg = won ? "    PRESS ENTER TO CONTINUE" : "           GAME OVER";
+      msg = won ? "    PRESS TO CONTINUE" : "           GAME OVER";
     }
     ctx.fillText(msg, 20, 50);
+
+    if (DEBUG_TRIGGERS) {
+      const triggers = [
+        "L",
+        triggerIsDown[TR_LEFT_FLIPPER] ? "O" : "_",
+        " R",
+        triggerIsDown[TR_RIGHT_FLIPPER] ? "O" : "_",
+        " T",
+        triggerIsDown[TR_TILT] ? "O" : "_",
+        " L",
+        triggerIsDown[TR_LAUNCH] ? "O" : "_",
+        " A",
+        anyTriggerIsDown ? "O" : "_"
+      ].join("");
+      ctx.fillText(triggers, 0, (H - 20) / 2);
+    }
 
     //M.Render.endViewTransform(render);
   });

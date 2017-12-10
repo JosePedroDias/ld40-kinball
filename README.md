@@ -19,6 +19,14 @@ while Edge and Safari run only in `index-compat.html`)
 
 ## Changelog
 
+### 1.2 - 2017/12/10
+
+* removed enter key -> any key will do to continue
+* changed the way triggers are handled for immediate change, now outside of
+  keyboard handlers
+* mapped top, bottom, left and right part of the canvas as touch triggers (no
+  multitouch support yet though, at least in win10)
+
 ### 1.1 - 2017/12/09
 
 * changed mapping of keys to triggers from 1 to 1 to 1 to many
